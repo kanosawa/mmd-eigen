@@ -31,53 +31,52 @@ int mouse_l = 0;
 int mouse_m = 0;
 int mouse_r = 0;
 int mpos[2];
-double trans[3] = { 0.0, 0.0, 0.0 };
-double theta[3] = { 0.0, 0.0, 0.0 };
-double angle[3] = { 0.0, 0.0, 0.0 };
+double trans[3] = {0.0, 0.0, 0.0};
+double theta[3] = {0.0, 0.0, 0.0};
+double angle[3] = {0.0, 0.0, 0.0};
 
-void display(void)
-{
-	glViewport(0, 0, width, height);
-	glLoadIdentity();
-	gluPerspective(15.0, (double)width / (double)height, 1.0, 1000.0);
-	gluLookAt(-0.0, 70.0, -100.0, -8.0, 10.0, 0.0, 0.0, 1.0, 0.0);
+void display(void) {
+    glViewport(0, 0, width, height);
+    glLoadIdentity();
+    gluPerspective(15.0, (double) width / (double) height, 1.0, 1000.0);
+    gluLookAt(-0.0, 70.0, -100.0, -8.0, 10.0, 0.0, 0.0, 1.0, 0.0);
 
-	glRotated(angle[0], 1.0, 0.0, 0.0);
-	glRotated(angle[1], 0.0, 1.0, 0.0);
-	glRotated(angle[2], 0.0, 0.0, 1.0);
+    glRotated(angle[0], 1.0, 0.0, 0.0);
+    glRotated(angle[1], 0.0, 1.0, 0.0);
+    glRotated(angle[2], 0.0, 0.0, 1.0);
 
     //vector<mmd::Bone> bones = model->getBones();
     //vector<mmd::Vertex> vertices = model->getVertices();
     vector<mmd::Bone> bones = boneItr->second;
     vector<mmd::Vertex> vertices = vertexItr->second;
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-	// �|���S���̕`��
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
-	int surfaceNo = 0;
-	for (int i = 0; i < model->getMaterialNum(); ++i) {
-		int ordinaryTextureIndex = model->getMaterial(i).getOrdinaryTextureIndex();
-		glBindTexture(GL_TEXTURE_2D, texname[ordinaryTextureIndex]);
+    // �|���S���̕`��
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+    int surfaceNo = 0;
+    for (int i = 0; i < model->getMaterialNum(); ++i) {
+        int ordinaryTextureIndex = model->getMaterial(i).getOrdinaryTextureIndex();
+        glBindTexture(GL_TEXTURE_2D, texname[ordinaryTextureIndex]);
 
-		glBegin(GL_TRIANGLES);
-		int surfaceNum = model->getMaterial(i).getSurfaceNum();
-		for (int s = 0; s < surfaceNum; ++s) {
-			mmd::TriangleSurface triangleSurface = model->getSurface(surfaceNo);
-			Eigen::Vector3i vertexIndexies = triangleSurface.getVertexIndexies();
-			for (int j = 0; j < 3; ++j) {
-				mmd::Vertex vertex = vertices[vertexIndexies[j]];
-				glTexCoord2f(vertex.getUv().x(), vertex.getUv().y());
-				glVertex3f(vertex.getPosition().x(), vertex.getPosition().y(), vertex.getPosition().z());
-			}
-			++surfaceNo;
-		}
-		glEnd();
-	}
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
+        glBegin(GL_TRIANGLES);
+        int surfaceNum = model->getMaterial(i).getSurfaceNum();
+        for (int s = 0; s < surfaceNum; ++s) {
+            mmd::TriangleSurface triangleSurface = model->getSurface(surfaceNo);
+            Eigen::Vector3i vertexIndexies = triangleSurface.getVertexIndexies();
+            for (int j = 0; j < 3; ++j) {
+                mmd::Vertex vertex = vertices[vertexIndexies[j]];
+                glTexCoord2f(vertex.getUv().x(), vertex.getUv().y());
+                glVertex3f(vertex.getPosition().x(), vertex.getPosition().y(), vertex.getPosition().z());
+            }
+            ++surfaceNo;
+        }
+        glEnd();
+    }
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_TEXTURE_2D);
 
     /*
 	// �{�[���_�̕\��
@@ -122,8 +121,8 @@ void display(void)
 	glEnd();
     */
 
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glutSwapBuffers();
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glutSwapBuffers();
 
     boneItr++;
     vertexItr++;
@@ -131,52 +130,47 @@ void display(void)
     if (++vertexItr == vertexStream.getVertexListMap().end()) vertexItr = vertexStream.getVertexListMap().begin();
 }
 
-void mouse(int button, int state, int x, int y)
-{
-	switch (button){
-		case GLUT_LEFT_BUTTON:
-			if (state == GLUT_DOWN){
-				mpos[0] = x;
-				mpos[1] = y;
-				mouse_l = 1;
-			}
-			if (state == GLUT_UP){
-				mouse_l = 0;
-			}
-			break;
-		default:
-			break;
-	}
+void mouse(int button, int state, int x, int y) {
+    switch (button) {
+        case GLUT_LEFT_BUTTON:
+            if (state == GLUT_DOWN) {
+                mpos[0] = x;
+                mpos[1] = y;
+                mouse_l = 1;
+            }
+            if (state == GLUT_UP) {
+                mouse_l = 0;
+            }
+            break;
+        default:
+            break;
+    }
 }
 
-void motion(int x, int y)
-{
-	if (mouse_l == 1){
-		theta[0] = (double)(y - mpos[1]) / 5.0;
-		theta[1] = (double)(x - mpos[0]) / 5.0;
-	}
-	if (mouse_l == 1 || mouse_m == 1 || mouse_r == 1){
-		mpos[0] = x;
-		mpos[1] = y;
-		angle[0] += theta[0];
-		angle[1] += theta[1];
-		glutPostRedisplay();
-	}
+void motion(int x, int y) {
+    if (mouse_l == 1) {
+        theta[0] = (double) (y - mpos[1]) / 5.0;
+        theta[1] = (double) (x - mpos[0]) / 5.0;
+    }
+    if (mouse_l == 1 || mouse_m == 1 || mouse_r == 1) {
+        mpos[0] = x;
+        mpos[1] = y;
+        angle[0] += theta[0];
+        angle[1] += theta[1];
+        glutPostRedisplay();
+    }
 }
 
-void resize(int w, int h)
-{
-	width = w;
-	height = h;
+void resize(int w, int h) {
+    width = w;
+    height = h;
 }
 
-void Idle()
-{
+void Idle() {
     //glutPostRedisplay();
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
     // GLUTの準備
     glutInit(&argc, NULL);
     glutInitWindowSize(960, 640);
@@ -196,12 +190,12 @@ int main(int argc, char* argv[])
     glDisable(GL_LIGHTING);
 
     // PMXファイルの入力
-	mmd::PmxFileReader pmxFileReader("maya.pmx");
-	model = pmxFileReader.readFile();
+    mmd::PmxFileReader pmxFileReader("maya.pmx");
+    model = pmxFileReader.readFile();
 
-	// VMDファイルの入力
-	mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
-	vmdDataStream = vmdFileReader.readFile();
+    // VMDファイルの入力
+    mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
+    vmdDataStream = vmdFileReader.readFile();
 
     initialBones = model->getBones();
     vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices());
@@ -222,7 +216,7 @@ int main(int argc, char* argv[])
 
     glutMainLoop();
 
-	return 0;
+    return 0;
 }
 
 /*

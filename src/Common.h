@@ -3,9 +3,8 @@
 
 #include "Surface.h"
 
-namespace mmd
-{
-	typedef Surface<Eigen::Vector3i> TriangleSurface;
+namespace mmd {
+    typedef Surface<Eigen::Vector3i> TriangleSurface;
 }
 
 #endif

@@ -7,59 +7,57 @@
 #include "VmdDataStream.h"
 #include "BoneIndexCalculator.h"
 
-namespace mmd
-{
-	/*! @brief VMDファイル読み込みクラス
-	*/
-	class VmdFileReader
-	{
-	public:
-		/*! @brief コンストラクタ
-		* @param[in] filename VMDファイル名
-		* @param[in] 初期ボーン
-		*/
-		VmdFileReader(const string& filename, const vector<Bone>& initialBones);
+namespace mmd {
+    /*! @brief VMDファイル読み込みクラス
+    */
+    class VmdFileReader {
+    public:
+        /*! @brief コンストラクタ
+        * @param[in] filename VMDファイル名
+        * @param[in] 初期ボーン
+        */
+        VmdFileReader(const string &filename, const vector<Bone> &initialBones);
 
-		/*! @brief デストラクタ
-		*/
-		~VmdFileReader();
+        /*! @brief デストラクタ
+        */
+        ~VmdFileReader();
 
-		/*! @brief VMDファイルの読み込み
-		* @return VMDデータストリーム
-		*/
-		std::unique_ptr<VmdDataStream> readFile();
+        /*! @brief VMDファイルの読み込み
+        * @return VMDデータストリーム
+        */
+        std::unique_ptr<VmdDataStream> readFile();
 
-	private:
-		/*! @brief デフォルトコンストラクタの禁止
-		*/
-		VmdFileReader();
+    private:
+        /*! @brief デフォルトコンストラクタの禁止
+        */
+        VmdFileReader();
 
-		/*! @brief コピーコンストラクタの禁止
-		*/
-		VmdFileReader(const VmdFileReader&);
+        /*! @brief コピーコンストラクタの禁止
+        */
+        VmdFileReader(const VmdFileReader &);
 
-		/*! @brief 代入演算子の禁止
-		*/
-		VmdFileReader& operator=(const VmdFileReader&);
+        /*! @brief 代入演算子の禁止
+        */
+        VmdFileReader &operator=(const VmdFileReader &);
 
-		/*! @brief ヘッダの読み込み
-		* @param[out] vmdDataStream VMDデータストリーム
-		* @return 成否
-		*/
-		bool readHeader(std::unique_ptr<VmdDataStream>& vmdDataStream);
+        /*! @brief ヘッダの読み込み
+        * @param[out] vmdDataStream VMDデータストリーム
+        * @return 成否
+        */
+        bool readHeader(std::unique_ptr<VmdDataStream> &vmdDataStream);
 
-		/*! @brief ファイルストリーム
-		*/
-		ifstream fileStream_;
+        /*! @brief ファイルストリーム
+        */
+        ifstream fileStream_;
 
-		/*! @brief ボーンインデックス算出クラス
-		*/
-		unique_ptr<BoneIndexCalculator> boneIndexCalculator_;
+        /*! @brief ボーンインデックス算出クラス
+        */
+        unique_ptr<BoneIndexCalculator> boneIndexCalculator_;
 
-		/*! @brief フレームデータ数
-		*/
-		unsigned int frameDataNum_;
-	};
+        /*! @brief フレームデータ数
+        */
+        unsigned int frameDataNum_;
+    };
 }
 
 #endif

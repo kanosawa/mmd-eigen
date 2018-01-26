@@ -11,7 +11,7 @@ find_package(GLEW REQUIRED)
 
 add_executable(mmd-eigen src/Main.cpp src/PmxFileReader.cpp
         src/MultiCharaCodeFileReader.cpp src/Vertex.cpp
-        src/PmxModel.cpp src/Material.cpp src/Bone.cpp src/Surface.cpp
+        src/PmxModel.cpp src/Material.cpp src/Bone.cpp
         src/VmdDataStream.cpp src/VmdFileReader.cpp
         src/BoneStream.cpp src/VertexStream.cpp
         src/BoneIndexCalculator.cpp)
