@@ -3,49 +3,58 @@
 #include "MultiCharaCodeFileReader.h"
 
 using namespace std;
-using namespace mmd;
 
-MultiCharaCodeFileReader::MultiCharaCodeFileReader(const string code_in) {
-    // 変換記述子の生成
-    conv_ = iconv_open("UTF-8", code_in.c_str());
-    if (conv_ == (iconv_t) -1) {
-        cout << "iconv_open error\n";
-        exit(0);
+const string trans(ifstream& fileStream, const int size, const bool needResize, const string code)
+{
+    iconv_t conv = iconv_open("UTF-8", code.c_str());
+
+    char inbuf[BUFSIZ], outbuf[BUFSIZ];
+    char *inbuf_p, *outbuf_p;
+    inbuf_p = inbuf;
+    outbuf_p = outbuf;
+
+    // ファイル入力
+    fileStream.read(inbuf_p, size);
+
+    // 文字コード変換
+    size_t size_in = size;
+    size_t size_out = BUFSIZ;
+    iconv(conv, &inbuf_p, &size_in, &outbuf_p, &size_out);
+
+    string str = outbuf;
+    if (needResize) {
+        str.resize(BUFSIZ - size_out);
     }
+    return str;
 }
 
 
-MultiCharaCodeFileReader::~MultiCharaCodeFileReader() {
-    iconv_close(conv_);
-}
-
-
-const string MultiCharaCodeFileReader::fread(std::ifstream &fileStream, const int size, const bool needTrans,
-                                             const bool needResize) const {
-    if (needTrans) {
-
-        char inbuf[BUFSIZ], outbuf[BUFSIZ];
-        char *inbuf_p, *outbuf_p;
-        inbuf_p = inbuf;
-        outbuf_p = outbuf;
-
-        // ファイル入力
-        fileStream.read(inbuf_p, size);
-
-        // 文字コード変換
-        size_t size_in = size;
-        size_t size_out = BUFSIZ;
-        iconv(conv_, &inbuf_p, &size_in, &outbuf_p, &size_out);
-
-        string str = outbuf;
-        if (needResize) {
-            str.resize(BUFSIZ - size_out);
-        }
-        return str;
+const string mmd::readFromUTF(ifstream &fileStream, const int size, const char encodeType, const bool needResize)
+{
+    if (encodeType == 0) {
+        return readFromUTF16(fileStream, size, needResize);
     } else {
-        char charTmp[BUFSIZ];
-        fileStream.read(reinterpret_cast<char *>(&charTmp), size);
-        string str = charTmp;
-        return str;
+        return readFromUTF8(fileStream, size);
     }
+}
+
+
+const string mmd::readFromUTF8(ifstream &fileStream, const int size)
+{
+    char charTmp[BUFSIZ];
+    fileStream.read(reinterpret_cast<char *>(&charTmp), size);
+    string str = charTmp;
+    return str;
+}
+
+
+const string mmd::readFromUTF16(ifstream &fileStream, const int size, const bool needResize)
+{
+    return trans(fileStream, size, needResize, "UTF-16");
+}
+
+
+const string mmd::readFromCP932(ifstream &fileStream, const int size, const bool needResize)
+{
+    return trans(fileStream, size, needResize, "CP932");
 }

@@ -4,8 +4,6 @@ using namespace std;
 using namespace mmd;
 
 PmxFileReader::PmxFileReader(const string &filename) {
-    multiCharaCodeFileReader_ = make_unique<MultiCharaCodeFileReader>("UTF-16");
-
     fileStream_.open(filename.c_str(), ios::binary);
     if (!fileStream_) {
         cout << "File Open Error in PmxFileReader()\n";
@@ -142,17 +140,11 @@ bool PmxFileReader::readIndexSize(unsigned char &indexSize) {
 bool PmxFileReader::readModelInfo() {
     const int MODEL_INFO_NUM = 4; // モデル名、モデル名英、コメント、コメント英
     int infoSize;
-
-    bool needCodeTrans = false;
-    if (pmxHeaderInfo_.encodeType == 0) {
-        needCodeTrans = true;
-    }
-
     for (int i = 0; i < MODEL_INFO_NUM; ++i) {
         // バイト数
         fileStream_.read(reinterpret_cast<char *>(&infoSize), 4);
 
-        multiCharaCodeFileReader_->fread(fileStream_, infoSize, needCodeTrans, true);
+        readFromUTF(fileStream_, infoSize, pmxHeaderInfo_.encodeType, true);
     }
 
     return true;
@@ -232,16 +224,12 @@ bool PmxFileReader::readTextures(std::unique_ptr<PmxModel> &model) {
     int textureNum;
     fileStream_.read(reinterpret_cast<char *>(&textureNum), 4);
 
-    bool needCodeTrans = false;
-    if (pmxHeaderInfo_.encodeType == 0) {
-        needCodeTrans = true;
-    }
-
     for (int n = 0; n < textureNum; ++n) {
         // テクスチャファイル名取得
         int nameSize;
         fileStream_.read(reinterpret_cast<char *>(&nameSize), 4);
-        string textureNameTstring = multiCharaCodeFileReader_->fread(fileStream_, nameSize, needCodeTrans, true);
+        string textureNameTstring = readFromUTF(fileStream_, nameSize, pmxHeaderInfo_.encodeType, true);
+
         char textureNameChar[BUFSIZ];
         strcpy(textureNameChar, textureNameTstring.c_str());
 
@@ -259,15 +247,9 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
     int materialNum;
     fileStream_.read(reinterpret_cast<char *>(&materialNum), 4);
 
-    bool needCodeTrans = false;
-    if (pmxHeaderInfo_.encodeType == 0) {
-        needCodeTrans = true;
-    }
-
     for (int n = 0; n < materialNum; ++n) {
 
         Material material;
-
         int tmpSize;
         float tmpFloat;
         unsigned char tmpByte;
@@ -276,7 +258,7 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
         // マテリアル名
         for (int i = 0; i < 2; ++i) {
             fileStream_.read(reinterpret_cast<char *>(&tmpSize), 4);
-            tmpStr = multiCharaCodeFileReader_->fread(fileStream_, tmpSize, needCodeTrans, true);
+            tmpStr = readFromUTF(fileStream_, tmpSize, pmxHeaderInfo_.encodeType, true);
         }
 
         // ディフューズ
@@ -318,7 +300,7 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
 
         // メモ
         fileStream_.read(reinterpret_cast<char *>(&tmpSize), 4);
-        tmpStr = multiCharaCodeFileReader_->fread(fileStream_, tmpSize, false, false);
+        tmpStr = readFromUTF8(fileStream_, tmpSize);
 
         // 面数
         int vertexNum;
@@ -340,11 +322,6 @@ bool PmxFileReader::readBones(std::unique_ptr<PmxModel> &model) {
     int boneNum;
     fileStream_.read(reinterpret_cast<char *>(&boneNum), 4);
 
-    bool needCodeTrans = false;
-    if (pmxHeaderInfo_.encodeType == 0) {
-        needCodeTrans = true;
-    }
-
     for (int n = 0; n < boneNum; ++n) {
 
         Bone bone;
@@ -352,11 +329,11 @@ bool PmxFileReader::readBones(std::unique_ptr<PmxModel> &model) {
         // ボーン名（日本語）
         int boneNameSize;
         fileStream_.read(reinterpret_cast<char *>(&boneNameSize), 4);
-        bone.setBoneName(multiCharaCodeFileReader_->fread(fileStream_, boneNameSize, needCodeTrans, true));
+        bone.setBoneName(readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true));
 
         // ボーン名（英語）
         fileStream_.read(reinterpret_cast<char *>(&boneNameSize), 4);
-        multiCharaCodeFileReader_->fread(fileStream_, boneNameSize, needCodeTrans, true);
+        readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true);
 
         // 三次元座標
         Eigen::Vector3f position;

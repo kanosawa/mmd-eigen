@@ -30,11 +30,10 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
     }
 
     // フレームデータの読み込み
-    MultiCharaCodeFileReader multiCharaCodeFileReader("CP932");
     const int BONE_NAME_LENGTH = 15;
     for (unsigned int i = 0; i < frameDataNum_; ++i) {
         // ボーン名
-        string boneName = multiCharaCodeFileReader.fread(fileStream_, BONE_NAME_LENGTH, true, false);
+        string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
 
         // ボーンインデックスの算出
         int index;

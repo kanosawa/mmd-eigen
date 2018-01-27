@@ -152,10 +152,6 @@ namespace mmd {
         */
         int readVariableSizeSignedData(const int dataSize);
 
-        /*! @brief UTF8-UTF16両対応ファイル入力用
-        */
-        unique_ptr<MultiCharaCodeFileReader> multiCharaCodeFileReader_;
-
         /*! @brief ファイルストリーム
         */
         std::ifstream fileStream_;
