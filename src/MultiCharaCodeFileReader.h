@@ -7,16 +7,23 @@
 using namespace std;
 
 namespace mmd {
+    /*! @brief ファイル入力
+    * @param[in] fileStream ファイルストリーム
+    * @param[in] size 入力バイト数
+    * @param[in] encodeType エンコードタイプ
+    * @param[in] needResize リサイズが必要か
+    * @return ファイルから入力した文字列
+    */
     const string readFromUTF(ifstream &fileStream, const int size, const char encodeType, const bool needResize = true);
 
-    /*! @brief ファイル入力
+    /*! @brief UTF8ファイル入力
     * @param[in] fileStream ファイルストリーム
     * @param[in] size 入力バイト数
     * @return ファイルから入力した文字列
     */
     const string readFromUTF8(ifstream &fileStream, const int size);
 
-    /*! @brief ファイル入力
+    /*! @brief UTF16ファイル入力
     * @param[in] fileStream ファイルストリーム
     * @param[in] size 入力バイト数
     * @param[in] needResize リサイズが必要か
@@ -24,7 +31,7 @@ namespace mmd {
     */
     const string readFromUTF16(ifstream &fileStream, const int size, const bool needResize);
 
-    /*! @brief ファイル入力
+    /*! @brief CP932ファイル入力
     * @param[in] fileStream ファイルストリーム
     * @param[in] size 入力バイト数
     * @param[in] needResize リサイズが必要か

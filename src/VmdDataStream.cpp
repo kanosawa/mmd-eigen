@@ -6,14 +6,12 @@ using namespace std;
 using namespace mmd;
 
 int searchSuperParentBone(const vector<Bone> &bones) {
-    int parentIndex = -1;
     for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
-        if (bones[boneIndex].getParentBoneIndex() == parentIndex) {
-            parentIndex = boneIndex;
-            break;
+        if (bones[boneIndex].getParentBoneIndex() == -1) {
+            return boneIndex;
         }
     }
-    return parentIndex;
+    return -1;
 };
 
 
@@ -45,15 +43,20 @@ void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneInde
         Eigen::Vector3f childBeforePos = bones[childBoneIndex].getPosition();
 
         // 移動後の位置 = 親の回転 * (元の位置 - 親の元の位置 + シフト) + 親の移動後の位置
+        // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
+        // シフトしてから回転する
+        // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
         bones[childBoneIndex].setPosition(bones[parentBoneIndex].getQuaternion() *
                                           (bones[childBoneIndex].getPosition() - parentBeforePos +
                                            boneInfoList[childBoneIndex].shift) +
                                           bones[parentBoneIndex].getPosition());
 
         // 移動後の回転 = 親の回転 * 回転
+        // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
         bones[childBoneIndex].setQuartanion(
                 bones[parentBoneIndex].getQuaternion() * boneInfoList[childBoneIndex].quarternion);
 
+        // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
         moveChildBones(bones, childBoneIndex, boneInfoList, childBeforePos);
     }
 }
@@ -65,27 +68,18 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
     splitBoneInfoList(boneInfoListVec);
 
     // 全ての親ボーンの探索
-    int parentIndex = searchSuperParentBone(initialBones);
-    if (parentIndex == -1) {
+    int superParentIndex = searchSuperParentBone(initialBones);
+    if (superParentIndex == -1) {
         cout << "全ての親ボーンが見つかりません\n";
         return false;
     }
 
     // 全フレームについて
-    vector<Bone> bones = initialBones;
+    vector<Bone> currentBones = initialBones;
     for (unsigned int f = 0; f < boneInfoListVec.size(); ++f) {
 
         int frameNo = boneInfoListVec[f].first;
         vector<BoneInfo> boneInfoList = boneInfoListVec[f].second;
-
-        /*
-        for (int i = 0; i < boneInfoList.size(); ++i) {
-            cout << boneInfoList[i].boneName << endl;
-            cout << boneInfoList[i].shift << endl;
-            cout << boneInfoList[i].quarternion.x() << "," << boneInfoList[i].quarternion.y() << ",";
-            cout << boneInfoList[i].quarternion.z() << "," << boneInfoList[i].quarternion.w() << endl << endl;
-        }
-        */
 
         // 全ボーンに関するボーン情報を作る
         vector<BoneInfo> allBoneInfoList(initialBones.size());
@@ -95,12 +89,15 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
             allBoneInfoList[b].quarternion = Eigen::Quaternionf(1, 0, 0, 0);
         }
 
+        // VMDファイルに記載のあったボーンについては、記載されていたボーン情報を上書き
+        // VMDファイルに記載されていないボーンはシフトと回転が無いということなので初期値のまま
         for (unsigned int i = 0; i < boneInfoList.size(); ++i) {
             allBoneInfoList[boneInfoList[i].boneIndex] = boneInfoList[i];
         }
 
         // ボーンストリーム
-        calcBoneStream(boneStream, bones, allBoneInfoList, frameNo, parentIndex);
+        // currentBonesはフレームが進むたびに更新されていく
+        calcBoneStream(boneStream, currentBones, allBoneInfoList, frameNo, superParentIndex);
 
         // 頂点ストリーム
         calcVertexStream(vertexStream, boneStream, initialVertices, initialBones, frameNo);
@@ -111,15 +108,16 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
 
 
 void VmdDataStream::calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
-                                   const vector<BoneInfo> &boneInfoList, const int frameNo, const int parentIndex) {
+                                   const vector<BoneInfo> &boneInfoList, const int frameNo, const int superParentIndex) {
     // 子ボーンの移動後位置の算出に親ボーンの元の移動前位置が必要
-    Eigen::Vector3f parentBeforePos = bones[parentIndex].getPosition();
+    Eigen::Vector3f parentBeforePos = bones[superParentIndex].getPosition();
 
-    // 最初のボーンについては単純な平行移動のみ
-    bones[parentIndex].setPosition(bones[parentIndex].getPosition() + boneInfoList[parentIndex].shift);
-    bones[parentIndex].setQuartanion(boneInfoList[parentIndex].quarternion);
+    // 全ての親ボーンについては単純に姿勢を変換
+    bones[superParentIndex].setPosition(bones[superParentIndex].getPosition() + boneInfoList[superParentIndex].shift);
+    bones[superParentIndex].setQuartanion(
+            bones[superParentIndex].getQuaternion() * boneInfoList[superParentIndex].quarternion);
 
-    moveChildBones(bones, parentIndex, boneInfoList, parentBeforePos);
+    moveChildBones(bones, superParentIndex, boneInfoList, parentBeforePos);
 
     /*
 	//for (int i = 0; i < boneInfoList.size(); ++i) {
@@ -161,6 +159,7 @@ void VmdDataStream::calcVertexStream(VertexStream &vertexStream, const BoneStrea
                     afterBones[boneIndex].getPosition()) *
                    refBoneWeightList[b];
         }
+        // refBoneIndices.size()で割る必要があるのでは？
         vertices[i].setPosition(pos);
     }
     vertexStream.pushBackVertices(frameNo, vertices);

@@ -38,7 +38,7 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
         string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
 
         // ボーンインデックスの算出
-        int index = distance(boneNames_.begin(), find(boneNames_.begin(), boneNames_.end(), boneName));
+        int boneIndex = distance(boneNames_.begin(), find(boneNames_.begin(), boneNames_.end(), boneName));
 
         // フレーム番号
         unsigned int frameNo;
@@ -58,8 +58,8 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
         fileStream_.read(reinterpret_cast<char *>(&param), 64);
 
         // VMDデータストリームへの挿入
-        if (index != static_cast<int>(boneNames_.size()) && frameNo == 0) {
-            VmdDataStream::BoneInfo boneInfo = {boneName, index, pos, quaternion};
+        if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo == 0) {
+            VmdDataStream::BoneInfo boneInfo = {boneName, boneIndex, pos, quaternion};
             vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
         }
     }

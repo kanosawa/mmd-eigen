@@ -13,8 +13,6 @@ using namespace std;
 unique_ptr<mmd::PmxModel> model;
 std::unique_ptr<mmd::VmdDataStream> vmdDataStream;
 
-vector<mmd::Bone> initialBones;
-
 mmd::BoneStream boneStream;
 mmd::VertexStream vertexStream;
 map<int, vector<mmd::Vertex>>::const_iterator vertexItr;
@@ -197,7 +195,6 @@ int main(int argc, char *argv[]) {
     mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
     vmdDataStream = vmdFileReader.readFile();
 
-    initialBones = model->getBones();
     vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices());
 
     // glTextureの準備
