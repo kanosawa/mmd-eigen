@@ -11,7 +11,9 @@ VmdFileReader::VmdFileReader(const string &filename, const vector<Bone> &initial
         exit(0);
     }
 
-    boneIndexCalculator_ = make_unique<BoneIndexCalculator>(initialBones);
+    for (unsigned int i = 0; i < initialBones.size(); ++i) {
+        boneNames_.push_back(initialBones[i].getBoneName());
+    }
 }
 
 
@@ -36,8 +38,7 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
         string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
 
         // ボーンインデックスの算出
-        int index;
-        bool res = boneIndexCalculator_->process(index, boneName);
+        int index = distance(boneNames_.begin(), find(boneNames_.begin(), boneNames_.end(), boneName));
 
         // フレーム番号
         unsigned int frameNo;
@@ -57,7 +58,7 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
         fileStream_.read(reinterpret_cast<char *>(&param), 64);
 
         // VMDデータストリームへの挿入
-        if (res && frameNo == 0) {
+        if (index != static_cast<int>(boneNames_.size()) && frameNo == 0) {
             VmdDataStream::BoneInfo boneInfo = {boneName, index, pos, quaternion};
             vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
         }
@@ -95,8 +96,7 @@ bool VmdFileReader::readHeader(std::unique_ptr<VmdDataStream> &vmdDataStream) {
 
     // モデル名
     const int MODEL_NAME_LENGTH = 20;
-    unsigned char modelName[MODEL_NAME_LENGTH];
-    fileStream_.read(reinterpret_cast<char *>(modelName), MODEL_NAME_LENGTH);
+    string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH, false);
 
     // フレームデータ数
     fileStream_.read(reinterpret_cast<char *>(&frameDataNum_), 4);

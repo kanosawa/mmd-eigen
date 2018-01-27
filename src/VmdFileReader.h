@@ -5,7 +5,6 @@
 #include <fstream>
 #include "MultiCharaCodeFileReader.h"
 #include "VmdDataStream.h"
-#include "BoneIndexCalculator.h"
 
 namespace mmd {
     /*! @brief VMDファイル読み込みクラス
@@ -50,9 +49,9 @@ namespace mmd {
         */
         ifstream fileStream_;
 
-        /*! @brief ボーンインデックス算出クラス
+        /*! @brief ボーン名リスト
         */
-        unique_ptr<BoneIndexCalculator> boneIndexCalculator_;
+        vector<string> boneNames_;
 
         /*! @brief フレームデータ数
         */

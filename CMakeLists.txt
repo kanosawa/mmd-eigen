@@ -13,7 +13,6 @@ add_executable(mmd-eigen src/Main.cpp src/PmxFileReader.cpp
         src/MultiCharaCodeFileReader.cpp src/Vertex.cpp
         src/PmxModel.cpp src/Material.cpp src/Bone.cpp
         src/VmdDataStream.cpp src/VmdFileReader.cpp
-        src/BoneStream.cpp src/VertexStream.cpp
-        src/BoneIndexCalculator.cpp)
+        src/BoneStream.cpp src/VertexStream.cpp)
 
 target_link_libraries(mmd-eigen ${OpenCV_LIBS} ${OPENGL_LIBRARY} ${GLUT_LIBRARY} ${GLEW_LIBRARY})
