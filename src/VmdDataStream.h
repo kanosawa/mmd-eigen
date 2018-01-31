@@ -13,11 +13,20 @@ namespace mmd {
     public:
         /*! @brief ボーン位置姿勢情報
         */
-        struct BoneInfo {
+        class BoneInfo {
+        public:
             string boneName; // ボーン名
             int boneIndex; // ボーンインデックス
             Eigen::Vector3f shift; // シフト量
             Eigen::Quaternionf quarternion; // クォータニオン
+
+            bool operator<(const BoneInfo& rhs) const {
+                return (boneIndex < rhs.boneIndex);
+            }
+
+            bool operator>(const BoneInfo& rhs) const {
+                return (boneIndex > rhs.boneIndex);
+            }
         };
 
         /*! @brief コンストラクタ
@@ -83,11 +92,8 @@ namespace mmd {
                               const vector<Vertex> &initialVertices, const vector<Bone> &initialBones,
                               const int frameNo);
 
-        void transChildBone(vector<Bone> &afterBones, const vector<Bone> &beforeBones,
-                            const vector<BoneInfo> &boneInfoList, const vector<int> &parentIndices);
-
         void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                            const vector<BoneInfo> &boneInfoList, const Eigen::Vector3f &parentBeforePos);
+                            const vector<BoneInfo> &boneInfoLis, const vector<Bone> &initialBones);
 
         /*! @brief ボーン情報リストマップ
         * map<フレーム番号, ボーン位置姿勢情報>

@@ -58,7 +58,7 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
         fileStream_.read(reinterpret_cast<char *>(&param), 64);
 
         // VMDデータストリームへの挿入
-        if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo == 0) {
+        if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo < 50) {
             VmdDataStream::BoneInfo boneInfo = {boneName, boneIndex, pos, quaternion};
             vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
         }

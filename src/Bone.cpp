@@ -32,6 +32,9 @@ void Bone::copy(const Bone &bone) {
     destinationFlag_ = bone.destinationFlag_;
     offset_ = bone.offset_;
     destinationBoneIndex_ = bone.destinationBoneIndex_;
+
+    position_tmp_ = bone.position_tmp_;
+    quaternion_tmp_ = bone.quaternion_tmp_;
 }
 
 

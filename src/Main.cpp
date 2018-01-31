@@ -76,27 +76,29 @@ void display(void) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_TEXTURE_2D);
 
-    /*
 	// �{�[���_�̕\��
 	glPointSize(2);
-	glColor3f(1.0f, 0.0f, 0.0f);
+	glColor3f(0.0f, 1.0f, 0.0f);
 	glBegin(GL_POINTS);
 	int boneNum = model->getBoneNum();
 	for (int b = 0; b < boneNum; ++b) {
-		Eigen::Vector3f pos = bones[b].getPosition();
+		//Eigen::Vector3f pos = bones[b].getPosition();
+        Eigen::Vector3f pos = bones[b].position_tmp_;
 		glVertex3f(pos.x(), pos.y(), pos.z());
 	}
 	glEnd();
 
 
 	// �{�[���̕\��
+    glColor3f(1.0f, 0.0f, 0.0f);
 	glLineWidth(2);
 	glBegin(GL_LINES);
 	for (int b = 0; b < boneNum; ++b) {
 		mmd::Bone bone = bones[b];
 
 		// �n�_
-		Eigen::Vector3f pos = bone.getPosition();
+		//Eigen::Vector3f pos = bone.getPosition();
+        Eigen::Vector3f pos = bone.position_tmp_;
 		glVertex3f(pos.x(), pos.y(), pos.z());
 
 		// �I�_
@@ -107,7 +109,8 @@ void display(void) {
 				destination = pos;
 			}
 			else {
-				destination = bones[destinationBoneIndex].getPosition();
+				//destination = bones[destinationBoneIndex].getPosition();
+                destination = bones[destinationBoneIndex].position_tmp_;
 			}
 		}
 		else {
@@ -117,15 +120,9 @@ void display(void) {
 		glVertex3f(destination.x(), destination.y(), destination.z());
 	}
 	glEnd();
-    */
 
     glColor3f(1.0f, 1.0f, 1.0f);
     glutSwapBuffers();
-
-    boneItr++;
-    vertexItr++;
-    if (++boneItr == boneStream.getBoneListMap().end()) boneItr = boneStream.getBoneListMap().begin();
-    if (++vertexItr == vertexStream.getVertexListMap().end()) vertexItr = vertexStream.getVertexListMap().begin();
 }
 
 void mouse(int button, int state, int x, int y) {
@@ -165,7 +162,9 @@ void resize(int w, int h) {
 }
 
 void Idle() {
-    //glutPostRedisplay();
+    if (++boneItr == boneStream.getBoneListMap().end()) boneItr = boneStream.getBoneListMap().begin();
+    if (++vertexItr == vertexStream.getVertexListMap().end()) vertexItr = vertexStream.getVertexListMap().begin();
+    glutPostRedisplay();
 }
 
 int main(int argc, char *argv[]) {

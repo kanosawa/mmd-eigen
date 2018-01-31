@@ -112,6 +112,14 @@ namespace mmd {
         */
         int getDestinationBoneIndex();
 
+        /*! @brief 三次元座標
+        */
+        Eigen::Vector3f position_tmp_;
+
+        /*! @brief クォータニオン
+        */
+        Eigen::Quaternionf quaternion_tmp_;
+
     private:
 
         /*! ボーン名（日本語）
