@@ -68,34 +68,36 @@ namespace mmd {
 
         /*! @brief 離散フレームのボーンストリームを算出
         * @param[out] boneStream ボーンストリーム
-        * @param[in]  initialBones 初期ボーン群
+        * @param[in, out]  bones ボーン群
         * @param[in]  boneInfoList ボーン情報リスト
         * @param[in]  frameNo フレーム番号
         * @param[in]  parentIndex 親インデックス
         */
-        void calcBoneStream(BoneStream &boneStream, const vector<Bone> &initialBones,
+        void calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
                             const vector<BoneInfo> &boneInfoList, const int frameNo, const int parentIndex);
 
         /*! @brief 離散フレームの頂点ストリームを算出
         * @param[out] vertexStream 頂点ストリーム
-        * @param[in]  boneStream ボーンストリーム
         * @param[in]  initialVertices 初期頂点群
         * @param[in]  initialBones 初期ボーン群
         * @param[in]  frameNo フレーム番号
         */
-        void calcVertexStream(VertexStream &vertexStream, const BoneStream &boneStream,
+        void calcVertexStream(VertexStream &vertexStream,
                               const vector<Vertex> &initialVertices, const vector<Bone> &initialBones,
                               const int frameNo);
 
         /*! @brief 子ボーンの移動
-         *
          * @param[in, out] bones ボーン群
          * @param[in] parentBoneIndex 親ボーンインデックス
          * @param[in] boneInfoList ボーン情報リスト
-         * @param[in] initialBones 初期ボーン群
          */
         void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                            const vector<BoneInfo> &boneInfoList, const vector<Bone> &initialBones);
+                            const vector<BoneInfo> &boneInfoList);
+
+        /*! @brief 全ての親ボーンの探索
+         * @param[in, out] bones ボーン群
+         */
+        int searchSuperParentBone(const vector<Bone> &bones);
 
         /*! @brief ボーン情報リストマップ
         * map<フレーム番号, ボーン位置姿勢情報>

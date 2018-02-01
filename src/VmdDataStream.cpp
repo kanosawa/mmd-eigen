@@ -5,16 +5,6 @@
 using namespace std;
 using namespace mmd;
 
-int searchSuperParentBone(const vector<Bone> &bones) {
-    for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
-        if (bones[boneIndex].getParentBoneIndex() == -1) {
-            return boneIndex;
-        }
-    }
-    return -1;
-};
-
-
 VmdDataStream::VmdDataStream() {
 }
 
@@ -28,13 +18,8 @@ void VmdDataStream::insertBoneInfoList(const int frameNo, const BoneInfo &boneIn
 }
 
 
-const multimap<int, VmdDataStream::BoneInfo> &VmdDataStream::getBoneInfoList() const {
-    return boneInfoListMap_;
-}
-
-
 void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                                   const vector<BoneInfo> &boneInfoList, const vector<Bone> &initialBones) {
+                                   const vector<BoneInfo> &boneInfoList) {
 
     vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
     for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
@@ -45,7 +30,7 @@ void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneInde
         // シフトしてから回転する
         // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
         bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
-                                              (initialBones[childBoneIndex].getInitialPosition() - initialBones[parentBoneIndex].getInitialPosition() +
+                                              (bones[childBoneIndex].getInitialPosition() - bones[parentBoneIndex].getInitialPosition() +
                                                boneInfoList[childBoneIndex].shift) +
                                               bones[parentBoneIndex].getTemporalPosition());
 
@@ -55,7 +40,7 @@ void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneInde
                 bones[parentBoneIndex].getTemporalQuaternion() * boneInfoList[childBoneIndex].quarternion);
 
         // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
-        moveChildBones(bones, childBoneIndex, boneInfoList, initialBones);
+        moveChildBones(bones, childBoneIndex, boneInfoList);
     }
 }
 
@@ -114,37 +99,35 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
 
         beforeAllBoneInfoList = allBoneInfoList;
 
+        vector<Bone> bones = initialBones;
+
         // ボーンストリーム
-        calcBoneStream(boneStream, initialBones, allBoneInfoList, frameNo, superParentIndex);
+        calcBoneStream(boneStream, bones, allBoneInfoList, frameNo, superParentIndex);
 
         // 頂点ストリーム
-        calcVertexStream(vertexStream, boneStream, initialVertices, initialBones, frameNo);
+        calcVertexStream(vertexStream, initialVertices, bones, frameNo);
     }
 
     return true;
 }
 
 
-void VmdDataStream::calcBoneStream(BoneStream &boneStream, const vector<Bone> &initialBones,
+void VmdDataStream::calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
                                    const vector<BoneInfo> &boneInfoList, const int frameNo,
                                    const int superParentIndex) {
-    vector<Bone> bones = initialBones;
-
     // 全ての親ボーンについては単純に姿勢を変換
     bones[superParentIndex].setTemporalPosition(bones[superParentIndex].getInitialPosition() + boneInfoList[superParentIndex].shift);
     bones[superParentIndex].setTemporalQuartanion(boneInfoList[superParentIndex].quarternion);
 
-    moveChildBones(bones, superParentIndex, boneInfoList, initialBones);
+    moveChildBones(bones, superParentIndex, boneInfoList);
 
     boneStream.pushBackBones(frameNo, bones);
 }
 
 
-void VmdDataStream::calcVertexStream(VertexStream &vertexStream, const BoneStream &boneStream,
-                                     const vector<Vertex> &initialVertices, const vector<Bone> &initialBones,
+void VmdDataStream::calcVertexStream(VertexStream &vertexStream,
+                                     const vector<Vertex> &initialVertices, const vector<Bone> &bones,
                                      const int frameNo) {
-    vector<Bone> afterBones;
-    boneStream.getBones(afterBones, frameNo);
     vector<Vertex> vertices = initialVertices;
     for (unsigned int i = 0; i < initialVertices.size(); ++i) {
         vector<int> refBoneIndices = initialVertices[i].getRefBoneIndices();
@@ -155,9 +138,9 @@ void VmdDataStream::calcVertexStream(VertexStream &vertexStream, const BoneStrea
             int boneIndex = refBoneIndices[b];
 
             // 移動後頂点の位置 = 移動後ボーンの回転 * (移動前頂点の位置 - 移動前ボーンの位置) + 移動後ボーンの位置
-            pos += (afterBones[boneIndex].getTemporalQuaternion() *
-                    (vertices[i].getPosition() - initialBones[boneIndex].getInitialPosition()) +
-                    afterBones[boneIndex].getTemporalPosition()) *
+            pos += (bones[boneIndex].getTemporalQuaternion() *
+                    (vertices[i].getPosition() - bones[boneIndex].getInitialPosition()) +
+                    bones[boneIndex].getTemporalPosition()) *
                    refBoneWeightList[b];
         }
         // refBoneIndices.size()で割る必要があるのでは？
@@ -181,3 +164,13 @@ void VmdDataStream::splitBoneInfoList(vector<pair<int, vector<BoneInfo>>> &boneI
         beforeFrameNo = b->first;
     }
 }
+
+
+int VmdDataStream::searchSuperParentBone(const vector<Bone> &bones) {
+    for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
+        if (bones[boneIndex].getParentBoneIndex() == -1) {
+            return boneIndex;
+        }
+    }
+    return -1;
+};
