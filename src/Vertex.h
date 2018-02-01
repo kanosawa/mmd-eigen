@@ -23,22 +23,9 @@ namespace mmd {
         Vertex(const Eigen::Vector3f &position, const Eigen::Vector2f &uv,
                const vector<int> &refBoneIndices, const vector<float> &refBoneWeightList);
 
-        /*! @brief コピーコンストラクタ
-        */
-        Vertex(const Vertex &vertex);
-
         /*! @brief デストラクタ
         */
         ~Vertex();
-
-        /*! @brief 代入演算子
-        */
-        Vertex &operator=(const Vertex &vertex);
-
-        /*! @brief コピー関数
-        * param[in] vertex コピー元頂点
-        */
-        void copy(const Vertex &vertex);
 
         /*! @brief 三次元座標の設定
         * @param[in] position モデル座標系における三次元座標

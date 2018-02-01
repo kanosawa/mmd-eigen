@@ -12,17 +12,9 @@ namespace mmd {
         */
         Material();
 
-        /*! @brief コピーコンストラクタ
-        */
-        Material(const Material &);
-
         /*! @brief デストラクタ
         */
         ~Material();
-
-        /*! @brief 代入演算子
-        */
-        Material &operator=(const Material &);
 
         /*! @brief ディフューズの設定
         * @param[in] diffuse ディフューズ
@@ -85,11 +77,6 @@ namespace mmd {
         const int getSurfaceNum() const;
 
     private:
-        /*! @brief コピー関数
-        * param[in] material コピー元マテリアル
-        */
-        void copy(const Material &material);
-
         /*! @brief ディフューズ
         */
         Eigen::Vector4f diffuse_;

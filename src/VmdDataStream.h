@@ -9,13 +9,13 @@ namespace mmd {
     * ファイルもしくはコンストラクタ引数からVMDデータリストを取得。
     * そして、離散フレームのボーン群を算出する。
     */
+
     class VmdDataStream {
     public:
         /*! @brief ボーン位置姿勢情報
         */
         class BoneInfo {
         public:
-            string boneName; // ボーン名
             int boneIndex; // ボーンインデックス
             Eigen::Vector3f shift; // シフト量
             Eigen::Quaternionf quarternion; // クォータニオン
@@ -42,11 +42,6 @@ namespace mmd {
         * @param[in] boneInfo ボーン情報
         */
         void insertBoneInfoList(const int frameNo, const BoneInfo &boneInfo);
-
-        /*! @brief ボーン情報リストの取得
-        * @return ボーン情報リスト
-        */
-        const multimap<int, BoneInfo> &getBoneInfoList() const;
 
         /*! @brief 離散フレームのボーン・頂点ストリームを算出
         * @param[out] boneStream ボーンストリーム
@@ -78,7 +73,7 @@ namespace mmd {
         * @param[in]  frameNo フレーム番号
         * @param[in]  parentIndex 親インデックス
         */
-        void calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
+        void calcBoneStream(BoneStream &boneStream, const vector<Bone> &initialBones,
                             const vector<BoneInfo> &boneInfoList, const int frameNo, const int parentIndex);
 
         /*! @brief 離散フレームの頂点ストリームを算出
@@ -92,8 +87,15 @@ namespace mmd {
                               const vector<Vertex> &initialVertices, const vector<Bone> &initialBones,
                               const int frameNo);
 
+        /*! @brief 子ボーンの移動
+         *
+         * @param[in, out] bones ボーン群
+         * @param[in] parentBoneIndex 親ボーンインデックス
+         * @param[in] boneInfoList ボーン情報リスト
+         * @param[in] initialBones 初期ボーン群
+         */
         void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                            const vector<BoneInfo> &boneInfoLis, const vector<Bone> &initialBones);
+                            const vector<BoneInfo> &boneInfoList, const vector<Bone> &initialBones);
 
         /*! @brief ボーン情報リストマップ
         * map<フレーム番号, ボーン位置姿勢情報>

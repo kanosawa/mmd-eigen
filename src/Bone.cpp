@@ -3,38 +3,11 @@
 
 using namespace mmd;
 
-Bone::Bone()
-        : quaternion_(Eigen::Quaternionf(1.0f, 0.0f, 0.0f, 0.0f)) {
-}
-
-
-Bone::Bone(const Bone &bone) {
-    copy(bone);
+Bone::Bone() {
 }
 
 
 Bone::~Bone() {
-}
-
-
-Bone &Bone::operator=(const Bone &bone) {
-    copy(bone);
-    return *this;
-}
-
-
-void Bone::copy(const Bone &bone) {
-    boneName_ = bone.boneName_;
-    position_ = bone.position_;
-    quaternion_ = bone.quaternion_;
-    parentBoneIndex_ = bone.parentBoneIndex_;
-    childBoneIndices_ = bone.childBoneIndices_;
-    destinationFlag_ = bone.destinationFlag_;
-    offset_ = bone.offset_;
-    destinationBoneIndex_ = bone.destinationBoneIndex_;
-
-    position_tmp_ = bone.position_tmp_;
-    quaternion_tmp_ = bone.quaternion_tmp_;
 }
 
 
@@ -48,23 +21,33 @@ const string &Bone::getBoneName() const {
 }
 
 
-void Bone::setPosition(const Eigen::Vector3f &position) {
-    position_ = position;
+void Bone::setInitialPosition(const Eigen::Vector3f &initial_position) {
+    initial_position_ = initial_position;
 }
 
 
-const Eigen::Vector3f &Bone::getPosition() const {
-    return position_;
+const Eigen::Vector3f &Bone::getInitialPosition() const {
+    return initial_position_;
 }
 
 
-void Bone::setQuartanion(const Eigen::Quaternionf &quaternion) {
-    quaternion_ = quaternion;
+void Bone::setTemporalPosition(const Eigen::Vector3f &temporal_position) {
+    temporal_position_ = temporal_position;
 }
 
 
-const Eigen::Quaternionf &Bone::getQuaternion() const {
-    return quaternion_;
+const Eigen::Vector3f &Bone::getTemporalPosition() const {
+    return temporal_position_;
+}
+
+
+void Bone::setTemporalQuartanion(const Eigen::Quaternionf &temporal_quaternion) {
+    temporal_quaternion_ = temporal_quaternion;
+}
+
+
+const Eigen::Quaternionf &Bone::getTemporalQuaternion() const {
+    return temporal_quaternion_;
 }
 
 

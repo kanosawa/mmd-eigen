@@ -12,26 +12,7 @@ Vertex::Vertex(const Eigen::Vector3f &position, const Eigen::Vector2f &uv,
 }
 
 
-Vertex::Vertex(const Vertex &vertex) {
-    copy(vertex);
-}
-
-
 Vertex::~Vertex() {
-}
-
-
-Vertex &Vertex::operator=(const Vertex &vertex) {
-    copy(vertex);
-    return *this;
-}
-
-
-void Vertex::copy(const Vertex &vertex) {
-    position_ = vertex.position_;
-    uv_ = vertex.uv_;
-    refBoneIndices_ = vertex.refBoneIndices_;
-    refBoneWeightList_ = vertex.refBoneWeightList_;
 }
 
 

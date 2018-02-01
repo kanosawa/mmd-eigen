@@ -82,8 +82,7 @@ void display(void) {
 	glBegin(GL_POINTS);
 	int boneNum = model->getBoneNum();
 	for (int b = 0; b < boneNum; ++b) {
-		//Eigen::Vector3f pos = bones[b].getPosition();
-        Eigen::Vector3f pos = bones[b].position_tmp_;
+        Eigen::Vector3f pos = bones[b].getTemporalPosition();
 		glVertex3f(pos.x(), pos.y(), pos.z());
 	}
 	glEnd();
@@ -97,8 +96,7 @@ void display(void) {
 		mmd::Bone bone = bones[b];
 
 		// �n�_
-		//Eigen::Vector3f pos = bone.getPosition();
-        Eigen::Vector3f pos = bone.position_tmp_;
+        Eigen::Vector3f pos = bone.getTemporalPosition();
 		glVertex3f(pos.x(), pos.y(), pos.z());
 
 		// �I�_
@@ -109,8 +107,7 @@ void display(void) {
 				destination = pos;
 			}
 			else {
-				//destination = bones[destinationBoneIndex].getPosition();
-                destination = bones[destinationBoneIndex].position_tmp_;
+                destination = bones[destinationBoneIndex].getTemporalPosition();
 			}
 		}
 		else {

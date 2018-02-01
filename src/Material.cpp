@@ -10,17 +10,6 @@ Material::~Material() {
 }
 
 
-Material::Material(const Material &material) {
-    copy(material);
-}
-
-
-Material &Material::operator=(const Material &material) {
-    copy(material);
-    return *this;
-}
-
-
 void Material::setDiffuse(const Eigen::Vector4f &diffuse) {
     diffuse_ = diffuse;
 }
@@ -78,14 +67,4 @@ void Material::setSurfaceNum(const int surfaceNum) {
 
 const int Material::getSurfaceNum() const {
     return surfaceNum_;
-}
-
-
-void Material::copy(const Material &material) {
-    diffuse_ = material.getDiffuse();
-    specular_ = material.getSpecular();
-    specularCoef_ = material.getSpecularCoef();
-    ambient_ = material.getAmbient();
-    ordinaryTextureIndex_ = material.getOrdinaryTextureIndex();
-    surfaceNum_ = material.getSurfaceNum();
 }

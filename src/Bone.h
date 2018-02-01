@@ -15,22 +15,9 @@ namespace mmd {
         */
         Bone();
 
-        /*! @brief コピーコンストラクタ
-        */
-        Bone(const Bone &bone);
-
-        /*! @brief 代入演算子
-        */
-        Bone &operator=(const Bone &bone);
-
         /*! @brief デストラクタ
         */
         ~Bone();
-
-        /*! @brief コピー関数
-        * @param[in] bone コピー元のボーン
-        */
-        void copy(const Bone &bone);
 
         /*! @brief ボーン名（日本語）の設定
         * @param[in] boneName ボーン名（日本語）
@@ -42,25 +29,35 @@ namespace mmd {
         */
         const string &getBoneName() const;
 
-        /*! @brief 三次元座標の設定
-        * @param[in] position 三次元座標
+        /*! @brief 三次元座標(initial)の設定
+        * @param[in] initial_position 三次元座標(initial)
         */
-        void setPosition(const Eigen::Vector3f &position);
+        void setInitialPosition(const Eigen::Vector3f &initial_position);
 
-        /*! @brief 三次元座標の取得
-        * @return 三次元座標
+        /*! @brief 三次元座標(initial)の取得
+        * @return 三次元座標(initial)
         */
-        const Eigen::Vector3f &getPosition() const;
+        const Eigen::Vector3f &getInitialPosition() const;
 
-        /*! @brief クォータニオンの設定
-        * @param[in] quartanion クォータニオン
+        /*! @brief 三次元座標(temporal)の設定
+        * @param[in] temporal_position 三次元座標
         */
-        void setQuartanion(const Eigen::Quaternionf &quaternion);
+        void setTemporalPosition(const Eigen::Vector3f &temporal_position);
+
+        /*! @brief 三次元座標(temporal)の取得
+        * @return 三次元座標(temporal)
+        */
+        const Eigen::Vector3f &getTemporalPosition() const;
+
+        /*! @brief クォータニオン(temporal)の設定
+        * @param[in] quartanion クォータニオン(temporal)
+        */
+        void setTemporalQuartanion(const Eigen::Quaternionf &temporal_quaternion);
 
         /*! @brief クォータニオンの取得
         * @return クォータニオン
         */
-        const Eigen::Quaternionf &getQuaternion() const;
+        const Eigen::Quaternionf &getTemporalQuaternion() const;
 
         /*! @brief 親ボーンインデックスの設定
         * @param[in] parentBoneIndex 親ボーンインデックス
@@ -112,14 +109,6 @@ namespace mmd {
         */
         int getDestinationBoneIndex();
 
-        /*! @brief 三次元座標
-        */
-        Eigen::Vector3f position_tmp_;
-
-        /*! @brief クォータニオン
-        */
-        Eigen::Quaternionf quaternion_tmp_;
-
     private:
 
         /*! ボーン名（日本語）
@@ -146,13 +135,17 @@ namespace mmd {
         */
         int destinationBoneIndex_;
 
-        /*! @brief 三次元座標
+        /*! @brief 三次元座標(initial)
         */
-        Eigen::Vector3f position_;
+        Eigen::Vector3f initial_position_;
 
-        /*! @brief クォータニオン
+        /*! @brief 三次元座標(temporal)
         */
-        Eigen::Quaternionf quaternion_;
+        Eigen::Vector3f temporal_position_;
+
+        /*! @brief クォータニオン(temporal)
+        */
+        Eigen::Quaternionf temporal_quaternion_;
     };
 }
 

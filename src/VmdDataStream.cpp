@@ -44,15 +44,15 @@ void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneInde
         // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
         // シフトしてから回転する
         // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
-        bones[childBoneIndex].position_tmp_ = bones[parentBoneIndex].quaternion_tmp_ *
-                                              (initialBones[childBoneIndex].getPosition() - initialBones[parentBoneIndex].getPosition() +
+        bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
+                                              (initialBones[childBoneIndex].getInitialPosition() - initialBones[parentBoneIndex].getInitialPosition() +
                                                boneInfoList[childBoneIndex].shift) +
-                                              bones[parentBoneIndex].position_tmp_;
+                                              bones[parentBoneIndex].getTemporalPosition());
 
         // 移動後の回転 = 親の回転 * 回転
         // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
-        bones[childBoneIndex].quaternion_tmp_ =
-                bones[parentBoneIndex].quaternion_tmp_ * boneInfoList[childBoneIndex].quarternion;
+        bones[childBoneIndex].setTemporalQuartanion(
+                bones[parentBoneIndex].getTemporalQuaternion() * boneInfoList[childBoneIndex].quarternion);
 
         // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
         moveChildBones(bones, childBoneIndex, boneInfoList, initialBones);
@@ -86,9 +86,8 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
         if (f == 0) {
             // 移動なしで初期化して
             for (unsigned int b = 0; b < allBoneInfoList.size(); ++b) {
-                allBoneInfoList[b].boneIndex = b;
-                allBoneInfoList[b].shift = Eigen::Vector3f(0, 0, 0);
-                allBoneInfoList[b].quarternion = Eigen::Quaternionf(1, 0, 0, 0);
+                BoneInfo boneInfo = {static_cast<int>(b), Eigen::Vector3f(0, 0, 0), Eigen::Quaternionf(1, 0, 0, 0)};
+                allBoneInfoList[b] = boneInfo;
             }
 
             // VMDファイルに記載のあったボーン情報を上書き
@@ -116,9 +115,7 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
         beforeAllBoneInfoList = allBoneInfoList;
 
         // ボーンストリーム
-        // currentBonesはフレームが進むたびに更新されていく
-        vector<Bone> currentBones = initialBones;
-        calcBoneStream(boneStream, currentBones, allBoneInfoList, frameNo, superParentIndex);
+        calcBoneStream(boneStream, initialBones, allBoneInfoList, frameNo, superParentIndex);
 
         // 頂点ストリーム
         calcVertexStream(vertexStream, boneStream, initialVertices, initialBones, frameNo);
@@ -128,15 +125,14 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
 }
 
 
-void VmdDataStream::calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
+void VmdDataStream::calcBoneStream(BoneStream &boneStream, const vector<Bone> &initialBones,
                                    const vector<BoneInfo> &boneInfoList, const int frameNo,
                                    const int superParentIndex) {
-    vector<Bone> initialBones = bones;
+    vector<Bone> bones = initialBones;
 
     // 全ての親ボーンについては単純に姿勢を変換
-    bones[superParentIndex].position_tmp_ = bones[superParentIndex].getPosition() + boneInfoList[superParentIndex].shift;
-    bones[superParentIndex].quaternion_tmp_ =
-            bones[superParentIndex].getQuaternion() * boneInfoList[superParentIndex].quarternion;
+    bones[superParentIndex].setTemporalPosition(bones[superParentIndex].getInitialPosition() + boneInfoList[superParentIndex].shift);
+    bones[superParentIndex].setTemporalQuartanion(boneInfoList[superParentIndex].quarternion);
 
     moveChildBones(bones, superParentIndex, boneInfoList, initialBones);
 
@@ -159,9 +155,9 @@ void VmdDataStream::calcVertexStream(VertexStream &vertexStream, const BoneStrea
             int boneIndex = refBoneIndices[b];
 
             // 移動後頂点の位置 = 移動後ボーンの回転 * (移動前頂点の位置 - 移動前ボーンの位置) + 移動後ボーンの位置
-            pos += (afterBones[boneIndex].quaternion_tmp_ *
-                    (vertices[i].getPosition() - initialBones[boneIndex].getPosition()) +
-                    afterBones[boneIndex].position_tmp_) *
+            pos += (afterBones[boneIndex].getTemporalQuaternion() *
+                    (vertices[i].getPosition() - initialBones[boneIndex].getInitialPosition()) +
+                    afterBones[boneIndex].getTemporalPosition()) *
                    refBoneWeightList[b];
         }
         // refBoneIndices.size()で割る必要があるのでは？

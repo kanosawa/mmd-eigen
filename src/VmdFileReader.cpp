@@ -59,21 +59,10 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
 
         // VMDデータストリームへの挿入
         if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo < 50) {
-            VmdDataStream::BoneInfo boneInfo = {boneName, boneIndex, pos, quaternion};
+            VmdDataStream::BoneInfo boneInfo = {boneIndex, pos, quaternion};
             vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
         }
     }
-
-    /*
-    multimap<int, VmdDataStream::BoneInfo> boneInfoListMap = vmdDataStream->getBoneInfoList();
-    auto range = boneInfoListMap.equal_range(0);
-    for (auto itr = range.first; itr != range.second; ++itr) {
-        cout << itr->first << "," << itr->second.boneIndex << "," << itr->second.boneName << endl;
-        cout << itr->second.shift << endl;
-        cout << itr->second.quarternion.x() << "," << itr->second.quarternion.y() << ",";
-        cout << itr->second.quarternion.z() << "," << itr->second.quarternion.w() << endl << endl;
-    }
-    */
 
     return std::move(vmdDataStream);
 }

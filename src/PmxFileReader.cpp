@@ -338,7 +338,7 @@ bool PmxFileReader::readBones(std::unique_ptr<PmxModel> &model) {
         // 三次元座標
         Eigen::Vector3f position;
         fileStream_.read(reinterpret_cast<char *>(&position), 12);
-        bone.setPosition(position);
+        bone.setInitialPosition(position);
 
         // 親ボーンインデックス
         bone.setParentBoneIndex(readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
