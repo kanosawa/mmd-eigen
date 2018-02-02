@@ -190,9 +190,9 @@ int main(int argc, char *argv[]) {
     // VMDファイルの入力
     vector<mmd::Motion> motions;
     mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
-    vmdDataStream = vmdFileReader.readFile(motions);
+    vmdFileReader.readFile(motions);
 
-    vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices());
+    vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices(), motions);
 
     // glTextureの準備
     glGenTextures(textureNum, texname);

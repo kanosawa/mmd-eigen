@@ -22,13 +22,10 @@ VmdFileReader::~VmdFileReader() {
 }
 
 
-//unique_ptr<VmdDataStream> VmdFileReader::readFile() {
-unique_ptr<VmdDataStream> VmdFileReader::readFile(vector<Motion>& motions) {
-    // VMDデータストリームの生成
-    unique_ptr<VmdDataStream> vmdDataStream = make_unique<VmdDataStream>();
+void VmdFileReader::readFile(vector<Motion>& motions) {
 
     // ヘッダの読み込み
-    if (!readHeader(vmdDataStream)) {
+    if (!readHeader()) {
         cout << "VmdFileReader::readFile() : Header Error\n";
         exit(0);
     }
@@ -60,19 +57,14 @@ unique_ptr<VmdDataStream> VmdFileReader::readFile(vector<Motion>& motions) {
         fileStream_.read(reinterpret_cast<char *>(&param), 64);
 
         // VMDデータストリームへの挿入
-        if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo < 50) {
-            //VmdDataStream::BoneInfo boneInfo = {boneIndex, pos, quaternion};
-            //vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
-            vmdDataStream->insertBoneInfoList(frameNo, Motion(boneIndex, frameNo, shift, quaternion));
-            //motions.push_back(Motion(boneIndex, frameNo, shift, quaternion));
+        if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo < 500) {
+            motions.push_back(Motion(boneIndex, frameNo, shift, quaternion));
         }
     }
-
-    return move(vmdDataStream);
 }
 
 
-bool VmdFileReader::readHeader(std::unique_ptr<VmdDataStream> &vmdDataStream) {
+bool VmdFileReader::readHeader() {
     // "Vocaloid Motion Data 0002\n"の確認
     const int VMD_LENGTH = 30;
     unsigned char charVmd[VMD_LENGTH];

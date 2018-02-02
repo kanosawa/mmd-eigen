@@ -16,11 +16,6 @@ Motion::~Motion() {
 }
 
 
-bool Motion::operator<(const Motion& rhs) const {
-    return (boneIndex_ < rhs.boneIndex_);
-}
-
-
 const int Motion::getBoneIndex() const {
     return boneIndex_;
 }

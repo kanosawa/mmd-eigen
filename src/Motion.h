@@ -24,10 +24,6 @@ namespace mmd {
         */
         ~Motion();
 
-        /*! @brief <演算子
-        */
-        bool operator<(const Motion& rhs) const;
-
         /*! @brief ボーンインデックスの取得
         * @return ボーンインデックス
         */

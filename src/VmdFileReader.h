@@ -25,8 +25,7 @@ namespace mmd {
         /*! @brief VMDファイルの読み込み
         * @return VMDデータストリーム
         */
-        //unique_ptr<VmdDataStream> readFile();
-        unique_ptr<VmdDataStream> readFile(vector<Motion>& motions);
+        void readFile(vector<Motion>& motions);
 
     private:
         /*! @brief デフォルトコンストラクタの禁止
@@ -45,7 +44,7 @@ namespace mmd {
         * @param[out] vmdDataStream VMDデータストリーム
         * @return 成否
         */
-        bool readHeader(unique_ptr<VmdDataStream> &vmdDataStream);
+        bool readHeader();
 
         /*! @brief ファイルストリーム
         */

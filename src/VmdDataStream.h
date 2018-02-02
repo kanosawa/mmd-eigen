@@ -13,23 +13,6 @@ namespace mmd {
 
     class VmdDataStream {
     public:
-        /*! @brief ボーン位置姿勢情報
-        */
-        class BoneInfo {
-        public:
-            int boneIndex; // ボーンインデックス
-            Eigen::Vector3f shift; // シフト量
-            Eigen::Quaternionf quaternion; // クォータニオン
-
-            bool operator<(const BoneInfo& rhs) const {
-                return (boneIndex < rhs.boneIndex);
-            }
-
-            bool operator>(const BoneInfo& rhs) const {
-                return (boneIndex > rhs.boneIndex);
-            }
-        };
-
         /*! @brief コンストラクタ
         */
         VmdDataStream();
@@ -38,12 +21,6 @@ namespace mmd {
         */
         ~VmdDataStream();
 
-        /*! @brief ボーン情報の挿入
-        * @param[in] framaNo フレーム番号
-        * @param[in] boneInfo ボーン情報
-        */
-        void insertBoneInfoList(const int frameNo, const Motion &motion);
-
         /*! @brief 離散フレームのボーン・頂点ストリームを算出
         * @param[out] boneStream ボーンストリーム
         * @param[out] vertexStream 頂点ストリーム
@@ -51,7 +28,8 @@ namespace mmd {
         * @param[in]  initialVertices 初期頂点群
         */
         bool calcStream(BoneStream &boneStream, VertexStream &vertexStream,
-                        const vector<Bone> &initialBones, const vector<Vertex> &initialVertices);
+                        const vector<Bone> &initialBones, const vector<Vertex> &initialVertices,
+                        const vector<Motion>& motions);
 
     private:
         /*! @brief コピーコンストラクタの禁止
@@ -65,7 +43,7 @@ namespace mmd {
         /*! @brief ボーン情報リストの分割
         * @param[out] boneInfoListVec ボーン情報リストベクタ
         */
-        void splitBoneInfoList(vector<pair<int, vector<Motion>>> &boneInfoListVec);
+        void splitBoneInfoList(vector<pair<int, vector<Motion>>> &boneInfoListVec, const vector<Motion>& motions);
 
         /*! @brief 離散フレームのボーンストリームを算出
         * @param[out] boneStream ボーンストリーム
@@ -99,11 +77,6 @@ namespace mmd {
          * @param[in, out] bones ボーン群
          */
         int searchSuperParentBone(const vector<Bone> &bones);
-
-        /*! @brief ボーン情報リストマップ
-        * map<フレーム番号, ボーン位置姿勢情報>
-        */
-        multimap<int, Motion> boneInfoListMap_;
     };
 }
 
