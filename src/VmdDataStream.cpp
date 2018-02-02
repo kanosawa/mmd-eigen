@@ -13,13 +13,13 @@ VmdDataStream::~VmdDataStream() {
 }
 
 
-void VmdDataStream::insertBoneInfoList(const int frameNo, const BoneInfo &boneInfo) {
-    boneInfoListMap_.insert(map<int, BoneInfo>::value_type(frameNo, boneInfo));
+void VmdDataStream::insertBoneInfoList(const int frameNo, const Motion &motion) {
+    boneInfoListMap_.insert(map<int, Motion>::value_type(frameNo, motion));
 }
 
 
 void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                                   const vector<BoneInfo> &boneInfoList) {
+                                   const vector<Motion> &frameMotions) {
 
     vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
     for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
@@ -31,23 +31,23 @@ void VmdDataStream::moveChildBones(vector<Bone> &bones, const int parentBoneInde
         // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
         bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
                                               (bones[childBoneIndex].getInitialPosition() - bones[parentBoneIndex].getInitialPosition() +
-                                               boneInfoList[childBoneIndex].shift) +
+                                               frameMotions[childBoneIndex].getShift()) +
                                               bones[parentBoneIndex].getTemporalPosition());
 
         // 移動後の回転 = 親の回転 * 回転
         // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
-        bones[childBoneIndex].setTemporalQuartanion(
-                bones[parentBoneIndex].getTemporalQuaternion() * boneInfoList[childBoneIndex].quarternion);
+        bones[childBoneIndex].setTemporalQuaternion(
+                bones[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
 
         // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
-        moveChildBones(bones, childBoneIndex, boneInfoList);
+        moveChildBones(bones, childBoneIndex, frameMotions);
     }
 }
 
 bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStream, const vector<Bone> &initialBones,
                                const vector<Vertex> &initialVertices) {
     // ボーン情報リストをフレームごとに分割
-    vector<pair<int, vector<BoneInfo>>> boneInfoListVec;
+    vector<pair<int, vector<Motion>>> boneInfoListVec;
     splitBoneInfoList(boneInfoListVec);
 
     // 全ての親ボーンの探索
@@ -58,32 +58,31 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
     }
 
     // 全フレームについて
-    vector<BoneInfo> beforeAllBoneInfoList(initialBones.size());
+    vector<Motion> beforeAllBoneInfoList(initialBones.size());
     for (unsigned int f = 0; f < boneInfoListVec.size(); ++f) {
 
         int frameNo = boneInfoListVec[f].first;
-        vector<BoneInfo> boneInfoList = boneInfoListVec[f].second;
+        vector<Motion> boneInfoList = boneInfoListVec[f].second;
         sort(boneInfoList.begin(), boneInfoList.end());
 
         // 全ボーンに関するボーン情報を作る
-        vector<BoneInfo> allBoneInfoList(initialBones.size());
+        vector<Motion> allBoneInfoList(initialBones.size());
 
         if (f == 0) {
             // 移動なしで初期化して
             for (unsigned int b = 0; b < allBoneInfoList.size(); ++b) {
-                BoneInfo boneInfo = {static_cast<int>(b), Eigen::Vector3f(0, 0, 0), Eigen::Quaternionf(1, 0, 0, 0)};
-                allBoneInfoList[b] = boneInfo;
+                allBoneInfoList[b] = Motion(b, 0, Eigen::Vector3f(0, 0, 0), Eigen::Quaternionf(1, 0, 0, 0));
             }
 
             // VMDファイルに記載のあったボーン情報を上書き
             for (unsigned int i = 0; i < boneInfoList.size(); ++i) {
-                allBoneInfoList[boneInfoList[i].boneIndex] = boneInfoList[i];
+                allBoneInfoList[boneInfoList[i].getBoneIndex()] = boneInfoList[i];
             }
         } else {
             int b = 0;
             for (unsigned int i = 0; i < boneInfoList.size(); ++i) {
                 // VMDファイルに記載がない場合は前フレームのボーン情報を書き込む
-                while(b < boneInfoList[i].boneIndex) {
+                while(b < boneInfoList[i].getBoneIndex()) {
                     allBoneInfoList[b] = beforeAllBoneInfoList[b];
                     ++b;
                 }
@@ -113,13 +112,14 @@ bool VmdDataStream::calcStream(BoneStream &boneStream, VertexStream &vertexStrea
 
 
 void VmdDataStream::calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
-                                   const vector<BoneInfo> &boneInfoList, const int frameNo,
+                                   const vector<Motion> &frameMotions, const int frameNo,
                                    const int superParentIndex) {
     // 全ての親ボーンについては単純に姿勢を変換
-    bones[superParentIndex].setTemporalPosition(bones[superParentIndex].getInitialPosition() + boneInfoList[superParentIndex].shift);
-    bones[superParentIndex].setTemporalQuartanion(boneInfoList[superParentIndex].quarternion);
+    bones[superParentIndex].setTemporalPosition(
+            bones[superParentIndex].getInitialPosition() + frameMotions[superParentIndex].getShift());
+    bones[superParentIndex].setTemporalQuaternion(frameMotions[superParentIndex].getQuaternion());
 
-    moveChildBones(bones, superParentIndex, boneInfoList);
+    moveChildBones(bones, superParentIndex, frameMotions);
 
     boneStream.pushBackBones(frameNo, bones);
 }
@@ -150,16 +150,17 @@ void VmdDataStream::calcVertexStream(VertexStream &vertexStream,
 }
 
 
-void VmdDataStream::splitBoneInfoList(vector<pair<int, vector<BoneInfo>>> &boneInfoListVec) {
+void VmdDataStream::splitBoneInfoList(vector<pair<int, vector<Motion>>> &boneInfoListVec) {
     int beforeFrameNo = 0;
     auto b = boneInfoListMap_.begin();
     while (1) {
-        vector<BoneInfo> boneInfoList;
+        //vector<BoneInfo> boneInfoList;
+        vector<Motion> boneInfoList;
         while (b != boneInfoListMap_.end() && b->first == beforeFrameNo) {
             boneInfoList.push_back(b->second);
             ++b;
         }
-        boneInfoListVec.push_back(pair<int, vector<BoneInfo>>(beforeFrameNo, boneInfoList));
+        boneInfoListVec.push_back(pair<int, vector<Motion>>(beforeFrameNo, boneInfoList));
         if (b == boneInfoListMap_.end()) break;
         beforeFrameNo = b->first;
     }

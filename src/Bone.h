@@ -50,9 +50,9 @@ namespace mmd {
         const Eigen::Vector3f &getTemporalPosition() const;
 
         /*! @brief クォータニオン(temporal)の設定
-        * @param[in] quartanion クォータニオン(temporal)
+        * @param[in] quaternion クォータニオン(temporal)
         */
-        void setTemporalQuartanion(const Eigen::Quaternionf &temporal_quaternion);
+        void setTemporalQuaternion(const Eigen::Quaternionf &temporal_quaternion);
 
         /*! @brief クォータニオンの取得
         * @return クォータニオン

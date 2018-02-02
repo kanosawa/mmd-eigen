@@ -5,6 +5,7 @@
 #include <fstream>
 #include "MultiCharaCodeFileReader.h"
 #include "VmdDataStream.h"
+#include "Motion.h"
 
 namespace mmd {
     /*! @brief VMDファイル読み込みクラス
@@ -24,7 +25,8 @@ namespace mmd {
         /*! @brief VMDファイルの読み込み
         * @return VMDデータストリーム
         */
-        std::unique_ptr<VmdDataStream> readFile();
+        //unique_ptr<VmdDataStream> readFile();
+        unique_ptr<VmdDataStream> readFile(vector<Motion>& motions);
 
     private:
         /*! @brief デフォルトコンストラクタの禁止
@@ -43,7 +45,7 @@ namespace mmd {
         * @param[out] vmdDataStream VMDデータストリーム
         * @return 成否
         */
-        bool readHeader(std::unique_ptr<VmdDataStream> &vmdDataStream);
+        bool readHeader(unique_ptr<VmdDataStream> &vmdDataStream);
 
         /*! @brief ファイルストリーム
         */
@@ -53,9 +55,9 @@ namespace mmd {
         */
         vector<string> boneNames_;
 
-        /*! @brief フレームデータ数
+        /*! @brief モーションデータ数
         */
-        unsigned int frameDataNum_;
+        unsigned int motionDataNum_;
     };
 }
 

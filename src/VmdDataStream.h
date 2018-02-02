@@ -3,6 +3,7 @@
 
 #include "BoneStream.h"
 #include "VertexStream.h"
+#include "Motion.h"
 
 namespace mmd {
     /*! @brief VMDデータストリームクラス
@@ -18,7 +19,7 @@ namespace mmd {
         public:
             int boneIndex; // ボーンインデックス
             Eigen::Vector3f shift; // シフト量
-            Eigen::Quaternionf quarternion; // クォータニオン
+            Eigen::Quaternionf quaternion; // クォータニオン
 
             bool operator<(const BoneInfo& rhs) const {
                 return (boneIndex < rhs.boneIndex);
@@ -41,7 +42,7 @@ namespace mmd {
         * @param[in] framaNo フレーム番号
         * @param[in] boneInfo ボーン情報
         */
-        void insertBoneInfoList(const int frameNo, const BoneInfo &boneInfo);
+        void insertBoneInfoList(const int frameNo, const Motion &motion);
 
         /*! @brief 離散フレームのボーン・頂点ストリームを算出
         * @param[out] boneStream ボーンストリーム
@@ -64,7 +65,7 @@ namespace mmd {
         /*! @brief ボーン情報リストの分割
         * @param[out] boneInfoListVec ボーン情報リストベクタ
         */
-        void splitBoneInfoList(vector<pair<int, vector<BoneInfo>>> &boneInfoListVec);
+        void splitBoneInfoList(vector<pair<int, vector<Motion>>> &boneInfoListVec);
 
         /*! @brief 離散フレームのボーンストリームを算出
         * @param[out] boneStream ボーンストリーム
@@ -74,7 +75,7 @@ namespace mmd {
         * @param[in]  parentIndex 親インデックス
         */
         void calcBoneStream(BoneStream &boneStream, vector<Bone> &bones,
-                            const vector<BoneInfo> &boneInfoList, const int frameNo, const int parentIndex);
+                            const vector<Motion> &frameMotions, const int frameNo, const int parentIndex);
 
         /*! @brief 離散フレームの頂点ストリームを算出
         * @param[out] vertexStream 頂点ストリーム
@@ -92,7 +93,7 @@ namespace mmd {
          * @param[in] boneInfoList ボーン情報リスト
          */
         void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                            const vector<BoneInfo> &boneInfoList);
+                            const vector<Motion> &frameMotions);
 
         /*! @brief 全ての親ボーンの探索
          * @param[in, out] bones ボーン群
@@ -102,7 +103,7 @@ namespace mmd {
         /*! @brief ボーン情報リストマップ
         * map<フレーム番号, ボーン位置姿勢情報>
         */
-        multimap<int, BoneInfo> boneInfoListMap_;
+        multimap<int, Motion> boneInfoListMap_;
     };
 }
 

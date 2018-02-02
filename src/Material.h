@@ -12,6 +12,11 @@ namespace mmd {
         */
         Material();
 
+        /*! @brief コンストラクタ
+        */
+        Material(const Eigen::Vector4f &diffuse, const Eigen::Vector3f &specular, const float specularCoef,
+                 const Eigen::Vector3f &ambient, const unsigned char ordinaryTextureIndex, const int surfaceNum);
+
         /*! @brief デストラクタ
         */
         ~Material();

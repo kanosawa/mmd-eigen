@@ -41,7 +41,7 @@ const Eigen::Vector3f &Bone::getTemporalPosition() const {
 }
 
 
-void Bone::setTemporalQuartanion(const Eigen::Quaternionf &temporal_quaternion) {
+void Bone::setTemporalQuaternion(const Eigen::Quaternionf &temporal_quaternion) {
     temporal_quaternion_ = temporal_quaternion;
 }
 

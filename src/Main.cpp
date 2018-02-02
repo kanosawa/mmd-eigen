@@ -6,7 +6,7 @@
 #include "VertexStream.h"
 #include "PmxFileReader.h"
 #include "VmdFileReader.h"
-#include "VmdDataStream.h"
+#include "Motion.h"
 
 using namespace std;
 
@@ -188,8 +188,9 @@ int main(int argc, char *argv[]) {
     model = pmxFileReader.readFile();
 
     // VMDファイルの入力
+    vector<mmd::Motion> motions;
     mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
-    vmdDataStream = vmdFileReader.readFile();
+    vmdDataStream = vmdFileReader.readFile(motions);
 
     vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices());
 

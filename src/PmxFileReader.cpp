@@ -249,7 +249,6 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
 
     for (int n = 0; n < materialNum; ++n) {
 
-        Material material;
         int tmpSize;
         float tmpFloat;
         unsigned char tmpByte;
@@ -264,22 +263,18 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
         // ディフューズ
         Eigen::Vector4f diffuse;
         fileStream_.read(reinterpret_cast<char *>(&diffuse), 16);
-        material.setDiffuse(diffuse);
 
         // スペキュラー
         Eigen::Vector3f specular;
         fileStream_.read(reinterpret_cast<char *>(&specular), 12);
-        material.setSpecular(specular);
 
         // スペキュラー係数
         float specularCoef;
         fileStream_.read(reinterpret_cast<char *>(&specularCoef), 4);
-        material.setSpecularCoef(specularCoef);
 
         // アンビエント
         Eigen::Vector3f ambient;
         fileStream_.read(reinterpret_cast<char *>(&ambient), 12);
-        material.setSpecular(ambient);
 
         // 描画フラグ
         fileStream_.read(reinterpret_cast<char *>(&tmpByte), 1);
@@ -291,7 +286,6 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
 
         // 通常テクスチャインデックス
         unsigned char ordinaryTextureIndex = readVariableSizeSignedData(pmxHeaderInfo_.textureIndexSize);
-        material.setOrdinaryTextureIndex(ordinaryTextureIndex);
 
         // 読み飛ばし
         for (int i = 0; i < 4; ++i) {
@@ -309,9 +303,8 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
             std::cout << "vertexNum Error\n";
             return false;
         }
-        material.setSurfaceNum(vertexNum / 3);
 
-        model->pushBackMaterial(material);
+        model->pushBackMaterial(Material(diffuse, specular, specularCoef, ambient,ordinaryTextureIndex, vertexNum / 3));
     }
 
     return true;

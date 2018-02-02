@@ -1,5 +1,6 @@
 #include <iostream>
 #include "VmdFileReader.h"
+#include "Motion.h"
 
 using namespace mmd;
 using namespace std;
@@ -21,9 +22,10 @@ VmdFileReader::~VmdFileReader() {
 }
 
 
-std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
+//unique_ptr<VmdDataStream> VmdFileReader::readFile() {
+unique_ptr<VmdDataStream> VmdFileReader::readFile(vector<Motion>& motions) {
     // VMDデータストリームの生成
-    std::unique_ptr<VmdDataStream> vmdDataStream = make_unique<VmdDataStream>();
+    unique_ptr<VmdDataStream> vmdDataStream = make_unique<VmdDataStream>();
 
     // ヘッダの読み込み
     if (!readHeader(vmdDataStream)) {
@@ -33,7 +35,7 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
 
     // フレームデータの読み込み
     const int BONE_NAME_LENGTH = 15;
-    for (unsigned int i = 0; i < frameDataNum_; ++i) {
+    for (unsigned int i = 0; i < motionDataNum_; ++i) {
         // ボーン名
         string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
 
@@ -44,9 +46,9 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
         unsigned int frameNo;
         fileStream_.read(reinterpret_cast<char *>(&frameNo), 4);
 
-        // ボーンの位置
-        Eigen::Vector3f pos;
-        fileStream_.read(reinterpret_cast<char *>(&pos), 12);
+        // ボーンのシフト
+        Eigen::Vector3f shift;
+        fileStream_.read(reinterpret_cast<char *>(&shift), 12);
 
         // ボーンのクォータニオン
         Eigen::Vector4f quatTmp;
@@ -59,12 +61,14 @@ std::unique_ptr<VmdDataStream> VmdFileReader::readFile() {
 
         // VMDデータストリームへの挿入
         if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo < 50) {
-            VmdDataStream::BoneInfo boneInfo = {boneIndex, pos, quaternion};
-            vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
+            //VmdDataStream::BoneInfo boneInfo = {boneIndex, pos, quaternion};
+            //vmdDataStream->insertBoneInfoList(frameNo, boneInfo);
+            vmdDataStream->insertBoneInfoList(frameNo, Motion(boneIndex, frameNo, shift, quaternion));
+            //motions.push_back(Motion(boneIndex, frameNo, shift, quaternion));
         }
     }
 
-    return std::move(vmdDataStream);
+    return move(vmdDataStream);
 }
 
 
@@ -87,9 +91,9 @@ bool VmdFileReader::readHeader(std::unique_ptr<VmdDataStream> &vmdDataStream) {
     const int MODEL_NAME_LENGTH = 20;
     string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH, false);
 
-    // フレームデータ数
-    fileStream_.read(reinterpret_cast<char *>(&frameDataNum_), 4);
-    cout << "frameDataNum = " << frameDataNum_ << endl;
+    // モーションデータ数
+    fileStream_.read(reinterpret_cast<char *>(&motionDataNum_), 4);
+    cout << "frameDataNum = " << motionDataNum_ << endl;
 
     return true;
 }
