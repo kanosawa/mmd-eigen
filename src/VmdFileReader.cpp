@@ -57,7 +57,7 @@ void VmdFileReader::readFile(vector<Motion>& motions) {
         fileStream_.read(reinterpret_cast<char *>(&param), 64);
 
         // VMDデータストリームへの挿入
-        if (boneIndex != static_cast<int>(boneNames_.size()) && frameNo < 500) {
+        if (boneIndex != static_cast<int>(boneNames_.size())) {
             motions.push_back(Motion(boneIndex, frameNo, shift, quaternion));
         }
     }

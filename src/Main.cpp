@@ -6,7 +6,6 @@
 #include "VertexStream.h"
 #include "PmxFileReader.h"
 #include "VmdFileReader.h"
-#include "Motion.h"
 
 using namespace std;
 
@@ -33,6 +32,14 @@ double trans[3] = {0.0, 0.0, 0.0};
 double theta[3] = {0.0, 0.0, 0.0};
 double angle[3] = {0.0, 0.0, 0.0};
 
+int superParentIndex;
+vector<vector<mmd::Motion>> boneMotions; // ボーンごとのモーション
+vector<vector<mmd::Motion>::iterator> boneMotionsItrs;
+int currentFrame = 0;
+vector<mmd::Bone> currentBones;
+vector<mmd::Vertex> currentVertex;
+int beforeTime;
+
 void display(void) {
     glViewport(0, 0, width, height);
     glLoadIdentity();
@@ -45,8 +52,11 @@ void display(void) {
 
     //vector<mmd::Bone> bones = model->getBones();
     //vector<mmd::Vertex> vertices = model->getVertices();
-    vector<mmd::Bone> bones = boneItr->second;
-    vector<mmd::Vertex> vertices = vertexItr->second;
+    //vector<mmd::Bone> bones = boneItr->second;
+    //vector<mmd::Vertex> vertices = vertexItr->second;
+
+    vector<mmd::Bone> bones = currentBones;
+    vector<mmd::Vertex> vertices = currentVertex;
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -75,6 +85,7 @@ void display(void) {
     }
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_TEXTURE_2D);
+
 
 	// �{�[���_�̕\��
 	glPointSize(2);
@@ -158,13 +169,153 @@ void resize(int w, int h) {
     height = h;
 }
 
-void Idle() {
-    if (++boneItr == boneStream.getBoneListMap().end()) boneItr = boneStream.getBoneListMap().begin();
-    if (++vertexItr == vertexStream.getVertexListMap().end()) vertexItr = vertexStream.getVertexListMap().begin();
-    glutPostRedisplay();
+void moveChildBones(vector<mmd::Bone> &bones, const int parentBoneIndex,
+                                   const vector<mmd::Motion> &frameMotions) {
+
+    vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
+    for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
+        int childBoneIndex = childBoneIndices[i];
+
+        // 移動後の位置 = 親の回転 * (元の位置 - 親の元の位置 + シフト) + 親の移動後の位置
+        // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
+        // シフトしてから回転する
+        // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
+        bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
+                                                  (bones[childBoneIndex].getInitialPosition() - bones[parentBoneIndex].getInitialPosition() +
+                                                   frameMotions[childBoneIndex].getShift()) +
+                                                  bones[parentBoneIndex].getTemporalPosition());
+
+        // 移動後の回転 = 親の回転 * 回転
+        // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
+        bones[childBoneIndex].setTemporalQuaternion(
+                bones[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
+
+        // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
+        moveChildBones(bones, childBoneIndex, frameMotions);
+    }
 }
 
+void update(vector<mmd::Bone>& bones)
+{
+    cout << currentFrame << endl;
+
+    vector<mmd::Motion> frameMotions(bones.size());
+    for (unsigned int i = 0; i < frameMotions.size(); ++i) {
+        if (boneMotionsItrs[i]->getFrameNo() == currentFrame) {
+            frameMotions[i] = *boneMotionsItrs[i];
+        } else if (distance(boneMotionsItrs[i], boneMotions[i].begin()) != boneMotions[i].size() - 1 && (boneMotionsItrs[i]+1)->getFrameNo() == currentFrame) {
+            frameMotions[i] = *(++(boneMotionsItrs[i]));
+        } else if (boneMotionsItrs[i]->getFrameNo() < currentFrame && distance(boneMotionsItrs[i], boneMotions[i].begin()) != boneMotions[i].size() - 1) {
+            float ratio = float(currentFrame - boneMotionsItrs[i]->getFrameNo()) /
+                          ((boneMotionsItrs[i]+1)->getFrameNo() - boneMotionsItrs[i]->getFrameNo());
+            Eigen::Vector3f shift = boneMotionsItrs[i]->getShift() * (1.0f - ratio) + (boneMotionsItrs[i]+1)->getShift() * ratio;
+            Eigen::Quaternionf quaternion = boneMotionsItrs[i]->getQuaternion().slerp(
+                    ratio, (boneMotionsItrs[i]+1)->getQuaternion());
+            frameMotions[i] = mmd::Motion(i, currentFrame, shift, quaternion);
+        } else if (boneMotionsItrs[i]->getFrameNo() < currentFrame && distance(boneMotionsItrs[i], boneMotions[i].begin()) == boneMotions[i].size() - 1) {
+            frameMotions[i] = *boneMotionsItrs[i];
+        } else {
+            cout << "error\n";
+        }
+    }
+
+    bones[superParentIndex].setTemporalPosition(
+            bones[superParentIndex].getInitialPosition() + frameMotions[superParentIndex].getShift());
+    bones[superParentIndex].setTemporalQuaternion(frameMotions[superParentIndex].getQuaternion());
+
+    moveChildBones(bones, superParentIndex, frameMotions);
+
+    vector<mmd::Vertex> initialVertices = model->getVertices();
+    for (unsigned int i = 0; i < initialVertices.size(); ++i) {
+        vector<int> refBoneIndices = initialVertices[i].getRefBoneIndices();
+        vector<float> refBoneWeightList = initialVertices[i].getRefBoneWeightList();
+        Eigen::Vector3f pos(0, 0, 0);
+        for (unsigned int b = 0; b < refBoneIndices.size(); ++b) {
+
+            int boneIndex = refBoneIndices[b];
+
+            // 移動後頂点の位置 = 移動後ボーンの回転 * (移動前頂点の位置 - 移動前ボーンの位置) + 移動後ボーンの位置
+            pos += (bones[boneIndex].getTemporalQuaternion() *
+                    (initialVertices[i].getPosition() - bones[boneIndex].getInitialPosition()) +
+                    bones[boneIndex].getTemporalPosition()) *
+                   refBoneWeightList[b];
+        }
+        // refBoneIndices.size()で割る必要があるのでは？
+        currentVertex[i].setPosition(pos);
+    }
+}
+
+void Idle() {
+    int GLtimenow = glutGet(GLUT_ELAPSED_TIME);
+    if (GLtimenow - beforeTime > 33)
+    {
+        update(currentBones);
+        glutPostRedisplay();
+        ++currentFrame;
+        beforeTime = GLtimenow;
+    }
+}
+
+int searchSuperParentBone(const vector<mmd::Bone> &bones) {
+    for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
+        if (bones[boneIndex].getParentBoneIndex() == -1) {
+            return boneIndex;
+        }
+    }
+    return -1;
+};
+
 int main(int argc, char *argv[]) {
+    // PMXファイルの入力
+    mmd::PmxFileReader pmxFileReader("maya.pmx");
+    model = pmxFileReader.readFile();
+
+    // VMDファイルの入力
+    vector<mmd::Motion> motions;
+    mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
+    vmdFileReader.readFile(motions);
+
+    // MotionをBoneごとに分ける
+    boneMotions.resize(model->getBones().size());
+    for (unsigned int i = 0; i < motions.size(); ++i) {
+        boneMotions[motions[i].getBoneIndex()].push_back(motions[i]);
+    }
+
+    // Motionをフレーム順にソート
+    for (unsigned int i = 0; i < boneMotions.size(); ++i) {
+        std::sort(boneMotions[i].begin(), boneMotions[i].end(), [](const mmd::Motion& a, const mmd::Motion& b){
+            return a.getFrameNo() < b.getFrameNo();
+        });
+    }
+
+    // フレーム0のモーションが存在しなければ挿入する
+    for (unsigned int boneIndex = 0; boneIndex < boneMotions.size(); ++boneIndex) {
+        auto head = boneMotions[boneIndex].begin();
+        if (head == boneMotions[boneIndex].end() || head->getFrameNo() != 0) {
+            boneMotions[boneIndex].insert(
+                    head, mmd::Motion(boneIndex, 0, Eigen::Vector3f(0, 0, 0), Eigen::Quaternionf(1, 0, 0, 0)));
+        }
+    }
+
+    // vector<Motion>::iteratorを先頭にセット
+    boneMotionsItrs.resize(boneMotions.size());
+    for (unsigned int i = 0; i < boneMotions.size(); ++i) {
+        boneMotionsItrs[i] = boneMotions[i].begin();
+    }
+
+    // 全ての親ボーンの探索
+    superParentIndex = searchSuperParentBone(model->getBones());
+    if (superParentIndex == -1) {
+        cout << "全ての親ボーンが見つかりません\n";
+        return false;
+    }
+
+    currentBones = model->getBones();
+    //currentVertex.resize(model->getVertices().size());
+    currentVertex = model->getVertices();
+
+    //vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices(), motions);
+
     // GLUTの準備
     glutInit(&argc, NULL);
     glutInitWindowSize(960, 640);
@@ -183,17 +334,6 @@ int main(int argc, char *argv[]) {
     glDisable(GL_CULL_FACE);
     glDisable(GL_LIGHTING);
 
-    // PMXファイルの入力
-    mmd::PmxFileReader pmxFileReader("maya.pmx");
-    model = pmxFileReader.readFile();
-
-    // VMDファイルの入力
-    vector<mmd::Motion> motions;
-    mmd::VmdFileReader vmdFileReader("maya.vmd", model->getBones());
-    vmdFileReader.readFile(motions);
-
-    vmdDataStream->calcStream(boneStream, vertexStream, model->getBones(), model->getVertices(), motions);
-
     // glTextureの準備
     glGenTextures(textureNum, texname);
     for (int i = 0; i < model->getTextureNum(); ++i) {
@@ -205,8 +345,10 @@ int main(int argc, char *argv[]) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
 
-    boneItr = boneStream.getBoneListMap().begin();
-    vertexItr = vertexStream.getVertexListMap().begin();
+    //boneItr = boneStream.getBoneListMap().begin();
+    //vertexItr = vertexStream.getVertexListMap().begin();
+
+    beforeTime = glutGet(GLUT_ELAPSED_TIME);
 
     glutMainLoop();
 
