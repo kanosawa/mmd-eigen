@@ -61,7 +61,7 @@ namespace mmd {
         /*! @brief PMXモデルファイルの読み込み
         * @return モデル
         */
-        unique_ptr<PmxModel> readFile();
+        void readFile(PmxModel& model);
 
     private:
         /*! @brief デフォルトコンストラクタの禁止
@@ -80,7 +80,7 @@ namespace mmd {
         * @param[out] model モデル
         * @return 成否
         */
-        bool readHeader(std::unique_ptr<PmxModel> &model);
+        bool readHeader(PmxModel &model);
 
         /*! @brief 全インデックスサイズの読み込み
         * @return 成否
@@ -102,43 +102,43 @@ namespace mmd {
         * @param[out] model モデル
         * @return 成否
         */
-        bool readVertices(std::unique_ptr<PmxModel> &model);
+        bool readVertices(PmxModel &model);
 
         /*! @brief 面の読み込み
         * @param[out] model モデル
         * @return 成否
         */
-        bool readSurfaces(std::unique_ptr<PmxModel> &model);
+        bool readSurfaces(PmxModel &model);
 
         /*! @brief テクスチャの読み込み
         * @param[out] model モデル
         * @return 成否
         */
-        bool readTextures(std::unique_ptr<PmxModel> &model);
+        bool readTextures(PmxModel &model);
 
         /*! @brief マテリアルの読み込み
         * @param[out] model モデル
         * @return 成否
         */
-        bool readMaterials(std::unique_ptr<PmxModel> &model);
+        bool readMaterials(PmxModel &model);
 
         /*! @brief ボーンの読み込み
         * @param[out] model モデル
         * @return 成否
         */
-        bool readBones(std::unique_ptr<PmxModel> &model);
+        bool readBones(PmxModel &model);
 
         /*! @brief 子ボーンインデックスの算出
         * @param[in, out] model モデル
         * @return 成否
         */
-        bool calcChildBoneIndices(std::unique_ptr<PmxModel> &model);
+        bool calcChildBoneIndices(PmxModel &model);
 
         /*! @brief 子ボーンの探索（再帰関数）
         * @param[out] model モデル
         * @param[in] parentBoneIndices 親ボーンインデックス
         */
-        void searchChildBone(std::unique_ptr<PmxModel> &model, const vector<int> &parentBoneIndices);
+        void searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices);
 
         /*! @brief 可変サイズデータのファイル入力(unsigned, リトルエンディアン)
         * @param[in] dataSize データバイト数

@@ -116,14 +116,6 @@ namespace mmd {
         const vector<Bone> &getBones() const;
 
     private:
-        /*! @brief コピーコンストラクタの禁止
-        */
-        PmxModel(const PmxModel &);
-
-        /*! @brief 代入演算子の禁止
-        */
-        PmxModel &operator=(const PmxModel &);
-
         /*! @brief モデルを構成する頂点群
         */
         std::vector<Vertex> vertices_;

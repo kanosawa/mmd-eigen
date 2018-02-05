@@ -16,9 +16,7 @@ PmxFileReader::~PmxFileReader() {
 }
 
 
-std::unique_ptr<PmxModel> PmxFileReader::readFile() {
-    // モデルの生成
-    std::unique_ptr<PmxModel> model = make_unique<PmxModel>();
+void PmxFileReader::readFile(PmxModel& model) {
 
     // ヘッダの読み込み
     if (!readHeader(model)) {
@@ -67,11 +65,9 @@ std::unique_ptr<PmxModel> PmxFileReader::readFile() {
         cout << "PmxFileReader::readFile() : ChileBoneIndices Error\n";
         exit(0);
     }
-
-    return std::move(model);
 }
 
-bool PmxFileReader::readHeader(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::readHeader(PmxModel &model) {
     // "PMX "の確認(ASCII)
     const int PMX_LENGTH = 4;
     unsigned char charPmx[PMX_LENGTH];
@@ -151,7 +147,7 @@ bool PmxFileReader::readModelInfo() {
 }
 
 
-bool PmxFileReader::readVertices(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::readVertices(PmxModel &model) {
     // 頂点数
     int vertexNum;
     fileStream_.read(reinterpret_cast<char *>(&vertexNum), 4);
@@ -192,7 +188,7 @@ bool PmxFileReader::readVertices(std::unique_ptr<PmxModel> &model) {
             cout << "This code does not support BDEF4 and SDEF\n";
         }
 
-        model->pushBackVertex(Vertex(pos, uv, boneIndices, boneWeightList));
+        model.pushBackVertex(Vertex(pos, uv, boneIndices, boneWeightList));
 
         // edge
         float edge;
@@ -203,7 +199,7 @@ bool PmxFileReader::readVertices(std::unique_ptr<PmxModel> &model) {
 }
 
 
-bool PmxFileReader::readSurfaces(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::readSurfaces(PmxModel &model) {
     int vertexIndexNum; // インデックス数。3インデックスで1面
     fileStream_.read(reinterpret_cast<char *>(&vertexIndexNum), 4);
 
@@ -213,13 +209,13 @@ bool PmxFileReader::readSurfaces(std::unique_ptr<PmxModel> &model) {
             vertexIndexies[i] = readVariableSizeUnsignedData(pmxHeaderInfo_.vertexIndexSize);
         }
         TriangleSurface triangleSurface(vertexIndexies);
-        model->pushBackSurface(triangleSurface);
+        model.pushBackSurface(triangleSurface);
     }
     return true;
 }
 
 
-bool PmxFileReader::readTextures(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::readTextures(PmxModel &model) {
     // テクスチャ数
     int textureNum;
     fileStream_.read(reinterpret_cast<char *>(&textureNum), 4);
@@ -236,13 +232,13 @@ bool PmxFileReader::readTextures(std::unique_ptr<PmxModel> &model) {
         // テクスチャ画像取得
         cv::Mat textureImage = cv::imread(textureNameChar);
         cv::cvtColor(textureImage, textureImage, CV_BGR2RGB);
-        model->pushBackTexture(textureImage);
+        model.pushBackTexture(textureImage);
     }
 
     return true;
 }
 
-bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::readMaterials(PmxModel &model) {
     // マテリアル数
     int materialNum;
     fileStream_.read(reinterpret_cast<char *>(&materialNum), 4);
@@ -304,13 +300,13 @@ bool PmxFileReader::readMaterials(std::unique_ptr<PmxModel> &model) {
             return false;
         }
 
-        model->pushBackMaterial(Material(diffuse, specular, specularCoef, ambient,ordinaryTextureIndex, vertexNum / 3));
+        model.pushBackMaterial(Material(diffuse, specular, specularCoef, ambient,ordinaryTextureIndex, vertexNum / 3));
     }
 
     return true;
 }
 
-bool PmxFileReader::readBones(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::readBones(PmxModel &model) {
     // ボーン数
     int boneNum;
     fileStream_.read(reinterpret_cast<char *>(&boneNum), 4);
@@ -408,18 +404,18 @@ bool PmxFileReader::readBones(std::unique_ptr<PmxModel> &model) {
             }
         }
 
-        model->pushBackBone(bone);
+        model.pushBackBone(bone);
     }
 
     return true;
 }
 
 
-bool PmxFileReader::calcChildBoneIndices(std::unique_ptr<PmxModel> &model) {
+bool PmxFileReader::calcChildBoneIndices(PmxModel &model) {
     // 全ての親ボーンの探索
     int parentIndex = -1;
-    for (int boneIndex = 0; boneIndex < model->getBoneNum(); ++boneIndex) {
-        if (model->getBone(boneIndex).getParentBoneIndex() == parentIndex) {
+    for (int boneIndex = 0; boneIndex < model.getBoneNum(); ++boneIndex) {
+        if (model.getBone(boneIndex).getParentBoneIndex() == parentIndex) {
             parentIndex = boneIndex;
             break;
         }
@@ -437,14 +433,14 @@ bool PmxFileReader::calcChildBoneIndices(std::unique_ptr<PmxModel> &model) {
     return true;
 }
 
-void PmxFileReader::searchChildBone(std::unique_ptr<PmxModel> &model, const vector<int> &parentBoneIndices) {
+void PmxFileReader::searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices) {
     for (unsigned int parent = 0; parent < parentBoneIndices.size(); ++parent) {
         vector<int> childBoneIndices;
-        for (int child = 0; child < model->getBoneNum(); ++child) {
+        for (int child = 0; child < model.getBoneNum(); ++child) {
             // もし、あるボーンにparentIndices[i]が親ボーンとして登録されていたら
-            if (model->getBone(child).getParentBoneIndex() == parentBoneIndices[parent]) {
+            if (model.getBone(child).getParentBoneIndex() == parentBoneIndices[parent]) {
                 // そのボーンインデックスを子ボーンインデックスとして親ボーンに登録
-                model->getBone(parentBoneIndices[parent]).pushBackChildBoneIndex(child);
+                model.getBone(parentBoneIndices[parent]).pushBackChildBoneIndex(child);
                 // 登録した子ボーンは後で親ボーンとして参照するのでvectorに突っ込んでおく
                 childBoneIndices.push_back(child);
             }
