@@ -2,33 +2,18 @@
 
 using namespace mmd;
 
-MotionStream::MotionStream() {
+MotionStream::MotionStream(const vector<Motion> &motions) {
+    motions_ = motions;
     pointer_ = 0;
 }
 
 
 MotionStream::~MotionStream() {
-
-}
-
-
-void MotionStream::setMotions(const vector<Motion> &motions) {
-    motions_ = motions;
-}
-
-
-const vector<Motion>& MotionStream::getMotions() {
-    return motions_;
-}
-
-
-const int MotionStream::getPointer() const {
-    return pointer_;
 }
 
 
 void MotionStream::incrementPointer() {
-    pointer_++;
+    ++pointer_;
 }
 
 
@@ -39,4 +24,12 @@ const Motion& MotionStream::getLatestMotion() const {
 
 const Motion& MotionStream::getNextMotion() const {
     return motions_[pointer_ + 1];
+}
+
+
+bool MotionStream::isLastMotion() {
+    if (pointer_ != motions_.size() - 1) {
+        return false;
+    }
+    return true;
 }

@@ -13,26 +13,11 @@ namespace mmd {
     public:
         /*! @brief コンストラクタ
         */
-        MotionStream();
+        MotionStream(const vector<Motion> &motions);
 
         /*! @brief デストラクタ
         */
         ~MotionStream();
-
-        /*! @brief モーションの設定
-        * @param[in] motions モーション
-        */
-        void setMotions(const vector<Motion> &motions);
-
-        /*! @brief モーションの取得
-        * @return モーション
-        */
-        const vector<Motion>& getMotions();
-
-        /*! @brief ポインタの取得
-        * @return ポインタ
-        */
-        const int getPointer() const;
 
         /*! @brief ポインタを進める
         */
@@ -47,6 +32,11 @@ namespace mmd {
         * @return 次モーション
         */
         const Motion& getNextMotion() const;
+
+        /*! @brief 最後のモーションか否か
+        * @return 最後のモーションならtrue
+        */
+        bool isLastMotion();
 
     private:
         vector<Motion> motions_;

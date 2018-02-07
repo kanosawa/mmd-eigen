@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    vector<mmd::MotionStream> motionStreams(boneMotions.size());
+    vector<mmd::MotionStream> motionStreams;
     for (unsigned int i = 0; i < boneMotions.size(); ++i) {
-        motionStreams[i].setMotions(boneMotions[i]);
+        motionStreams.push_back(mmd::MotionStream(boneMotions[i]));
     }
 
     mmd::Renderer::getInstance().setParam(model, motionStreams);

@@ -70,11 +70,9 @@ Renderer& Renderer::getInstance() {
 }
 
 
-//void Renderer::setParam(const PmxModel& model, const vector<vector<mmd::Motion>>& boneMotions) {
 void Renderer::setParam(const PmxModel& model, const vector<MotionStream>& motionStreams) {
     model_ = model;
     motionStreams_ = motionStreams;
-    //boneMotions_ = boneMotions;
 
     // glTexture
     glGenTextures(model_.getTextureNum(), texname);
@@ -90,14 +88,6 @@ void Renderer::setParam(const PmxModel& model, const vector<MotionStream>& motio
     bones_ = model_.getBones();
     superParentIndex_ = searchSuperParentBone(bones_);
     vertices_ = model_.getVertices();
-
-    /*
-    // vector<Motion>::iteratorを先頭にセット
-    boneMotionsItrs_.resize(boneMotions_.size());
-    for (unsigned int i = 0; i < boneMotions_.size(); ++i) {
-        boneMotionsItrs_[i] = boneMotions_[i].begin();
-    }
-    */
 }
 
 
@@ -112,33 +102,21 @@ void Renderer::update()
 
     vector<mmd::Motion> frameMotions(bones_.size());
     for (unsigned int i = 0; i < frameMotions.size(); ++i) {
-        //if (boneMotionsItrs_[i]->getFrameNo() == currentFrameNo_) {
         if (motionStreams_[i].getLatestMotion().getFrameNo() == currentFrameNo_) {
-            //frameMotions[i] = *boneMotionsItrs_[i];
             frameMotions[i] = motionStreams_[i].getLatestMotion();
-            //} else if (distance(boneMotionsItrs_[i], boneMotions_[i].begin()) != boneMotions_[i].size() - 1 && (boneMotionsItrs_[i]+1)->getFrameNo() == currentFrameNo_) {
-        } else if (motionStreams_[i].getPointer() != motionStreams_[i].getMotions().size() - 1 && motionStreams_[i].getNextMotion().getFrameNo() == currentFrameNo_) {
-            //frameMotions[i] = *(++(boneMotionsItrs_[i]));
+        } else if (!motionStreams_[i].isLastMotion() && motionStreams_[i].getNextMotion().getFrameNo() == currentFrameNo_) {
             frameMotions[i] = motionStreams_[i].getNextMotion();
             motionStreams_[i].incrementPointer();
-            //} else if (boneMotionsItrs_[i]->getFrameNo() < currentFrameNo_ && distance(boneMotionsItrs_[i], boneMotions_[i].begin()) != boneMotions_[i].size() - 1) {
-        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && motionStreams_[i].getPointer() != motionStreams_[i].getMotions().size() - 1) {
-            //float ratio = float(currentFrameNo_ - boneMotionsItrs_[i]->getFrameNo()) /
-            //((boneMotionsItrs_[i]+1)->getFrameNo() - boneMotionsItrs_[i]->getFrameNo());
+        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && !motionStreams_[i].isLastMotion()) {
             float ratio = float(currentFrameNo_ - motionStreams_[i].getLatestMotion().getFrameNo()) /
                           ((motionStreams_[i].getNextMotion().getFrameNo() -
                             motionStreams_[i].getLatestMotion().getFrameNo()));
-            //Eigen::Vector3f shift = boneMotionsItrs_[i]->getShift() * (1.0f - ratio) + (boneMotionsItrs_[i]+1)->getShift() * ratio;
             Eigen::Vector3f shift = motionStreams_[i].getLatestMotion().getShift() * (1.0f - ratio) +
                                     motionStreams_[i].getNextMotion().getShift() * ratio;
-            //Eigen::Quaternionf quaternion = boneMotionsItrs_[i]->getQuaternion().slerp(
-            //ratio, (boneMotionsItrs_[i]+1)->getQuaternion());
             Eigen::Quaternionf quaternion = motionStreams_[i].getLatestMotion().getQuaternion().slerp(
                     ratio, motionStreams_[i].getNextMotion().getQuaternion());
             frameMotions[i] = mmd::Motion(i, currentFrameNo_, shift, quaternion);
-            //} else if (boneMotionsItrs_[i]->getFrameNo() < currentFrameNo_ && distance(boneMotionsItrs_[i], boneMotions_[i].begin()) == boneMotions_[i].size() - 1) {
-        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && motionStreams_[i].getPointer() == motionStreams_[i].getMotions().size() - 1) {
-            //frameMotions[i] = *boneMotionsItrs_[i];
+        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && motionStreams_[i].isLastMotion()) {
             frameMotions[i] = motionStreams_[i].getLatestMotion();
         } else {
             cout << "error\n";
