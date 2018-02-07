@@ -2,7 +2,7 @@
 #define MMD_RENDERER_H
 
 #include "PmxModel.h"
-#include "Motion.h"
+#include "MotionStream.h"
 
 namespace mmd {
     /*! @brief レンダラークラス
@@ -15,8 +15,8 @@ namespace mmd {
 
         /*! @brief パラメータの設定
          */
-        void setParam(const PmxModel& model, const vector<Motion>& motions,
-                      const vector<vector<mmd::Motion>>& boneMotions);
+        //void setParam(const PmxModel& model, const vector<vector<mmd::Motion>>& boneMotions);
+        void setParam(const PmxModel& model, const vector<MotionStream>& motionStreams);
 
         /*! @brief スタート
          */
@@ -60,10 +60,6 @@ namespace mmd {
         */
         PmxModel model_;
 
-        /*! @brief モーション
-        */
-        vector<Motion> motions_;
-
         vector<Bone> bones_;
 
         vector<Vertex> vertices_;
@@ -98,8 +94,11 @@ namespace mmd {
 
         vector<Vertex> currentVertex_;
 
-        vector<vector<mmd::Motion>> boneMotions_; // ボーンごとのモーション
-        vector<vector<mmd::Motion>::iterator> boneMotionsItrs_;
+        //vector<vector<mmd::Motion>> boneMotions_; // ボーンごとのモーション
+        //vector<vector<mmd::Motion>::iterator> boneMotionsItrs_;
+
+        vector<MotionStream> motionStreams_;
+
         int superParentIndex_;
     };
 }

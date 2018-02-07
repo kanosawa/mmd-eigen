@@ -3,9 +3,9 @@
 
 #include <memory>
 #include <fstream>
-#include "MultiCharaCodeFileReader.h"
-#include "VmdDataStream.h"
+#include "Bone.h"
 #include "Motion.h"
+#include "MultiCharaCodeFileReader.h"
 
 namespace mmd {
     /*! @brief VMDファイル読み込みクラス
