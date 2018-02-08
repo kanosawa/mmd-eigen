@@ -51,6 +51,11 @@ const vector<Vertex> &PmxModel::getVertices() const {
 }
 
 
+vector<Vertex> &PmxModel::getVertices() {
+    return vertices_;
+}
+
+
 const TriangleSurface &PmxModel::getSurface(const unsigned int surfaceNo) const {
     assert(surfaceNo < surfaces_.size());
     return surfaces_[surfaceNo];
@@ -105,4 +110,8 @@ const vector<Bone> &PmxModel::getBones() const {
     return bones_;
 }
 
+
+vector<Bone> &PmxModel::getBones() {
+    return bones_;
+}
 

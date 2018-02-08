@@ -27,15 +27,25 @@ namespace mmd {
         */
         ~Vertex();
 
-        /*! @brief 三次元座標の設定
-        * @param[in] position モデル座標系における三次元座標
+        /*! @brief 三次元座標(initial)の設定
+        * @param[in] initial_position モデル座標系における三次元座標(initial)
         */
-        void setPosition(const Eigen::Vector3f &position);
+        void setInitialPosition(const Eigen::Vector3f &intiail_position);
 
-        /*! @brief 三次元座標の取得
-        * @return モデル座標系における三次元座標
+        /*! @brief 三次元座標(initial)の取得
+        * @return モデル座標系における三次元座標(initial)
         */
-        const Eigen::Vector3f &getPosition() const;
+        const Eigen::Vector3f &getInitialPosition() const;
+
+        /*! @brief 三次元座標(temporal)の設定
+        * @param[in] temporal_position モデル座標系における三次元座標(temporal)
+        */
+        void setTemporalPosition(const Eigen::Vector3f &temporal_position);
+
+        /*! @brief 三次元座標(temporal)の取得
+        * @return モデル座標系における三次元座標(temporal)
+        */
+        const Eigen::Vector3f &getTemporalPosition() const;
 
         /*! @brief UV座標の設定
         * @param[in] uv UV座標
@@ -58,9 +68,13 @@ namespace mmd {
         const vector<float> &getRefBoneWeightList() const;
 
     private:
-        /*! @brief モデル座標系における三次元座標
+        /*! @brief モデル座標系における三次元座標(initial)
         */
-        Eigen::Vector3f position_;
+        Eigen::Vector3f initial_position_;
+
+        /*! @brief モデル座標系における三次元座標(temporal)
+        */
+        Eigen::Vector3f temporal_position_;
 
         /*! @brief UV座標
         */

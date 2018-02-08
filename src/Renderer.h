@@ -3,6 +3,7 @@
 
 #include "PmxModel.h"
 #include "MotionStream.h"
+//#include "ModelUpdater.h"
 
 namespace mmd {
     /*! @brief レンダラークラス
@@ -15,7 +16,6 @@ namespace mmd {
 
         /*! @brief パラメータの設定
          */
-        //void setParam(const PmxModel& model, const vector<vector<mmd::Motion>>& boneMotions);
         void setParam(const PmxModel& model, const vector<MotionStream>& motionStreams);
 
         /*! @brief スタート
@@ -60,10 +60,6 @@ namespace mmd {
         */
         PmxModel model_;
 
-        vector<Bone> bones_;
-
-        vector<Vertex> vertices_;
-
         /*! @brief 現在フレーム番号
         */
         int currentFrameNo_;
@@ -92,14 +88,12 @@ namespace mmd {
         */
         double theta_[3], angle_[3];
 
-        vector<Vertex> currentVertex_;
-
-        //vector<vector<mmd::Motion>> boneMotions_; // ボーンごとのモーション
-        //vector<vector<mmd::Motion>::iterator> boneMotionsItrs_;
-
         vector<MotionStream> motionStreams_;
 
         int superParentIndex_;
+
+        //ModelUpdater updater_;
+
     };
 }
 

@@ -60,6 +60,11 @@ namespace mmd {
         */
         const vector<Vertex> &getVertices() const;
 
+        /*! @brief 頂点群の取得
+        * @return 頂点群
+        */
+        vector<Vertex> &getVertices();
+
         /*! @brief 面の取得
         * @param[in] surfaceNo 面番号
         * @return 面
@@ -114,6 +119,11 @@ namespace mmd {
         * @return ボーン群
         */
         const vector<Bone> &getBones() const;
+
+        /*! @brief ボーン群の取得
+        * @return ボーン群
+        */
+        vector<Bone> &getBones();
 
     private:
         /*! @brief モデルを構成する頂点群

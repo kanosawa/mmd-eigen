@@ -85,9 +85,7 @@ void Renderer::setParam(const PmxModel& model, const vector<MotionStream>& motio
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
 
-    bones_ = model_.getBones();
-    superParentIndex_ = searchSuperParentBone(bones_);
-    vertices_ = model_.getVertices();
+    superParentIndex_ = searchSuperParentBone(model_.getBones());
 }
 
 
@@ -100,7 +98,7 @@ void Renderer::update()
 {
     cout << currentFrameNo_ << endl;
 
-    vector<mmd::Motion> frameMotions(bones_.size());
+    vector<mmd::Motion> frameMotions(model_.getBones().size());
     for (unsigned int i = 0; i < frameMotions.size(); ++i) {
         if (motionStreams_[i].getLatestMotion().getFrameNo() == currentFrameNo_) {
             frameMotions[i] = motionStreams_[i].getLatestMotion();
@@ -123,29 +121,28 @@ void Renderer::update()
         }
     }
 
-    bones_[superParentIndex_].setTemporalPosition(
-            bones_[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
-    bones_[superParentIndex_].setTemporalQuaternion(frameMotions[superParentIndex_].getQuaternion());
+    model_.getBones()[superParentIndex_].setTemporalPosition(
+            model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
+    model_.getBones()[superParentIndex_].setTemporalQuaternion(frameMotions[superParentIndex_].getQuaternion());
 
-    moveChildBones(bones_, superParentIndex_, frameMotions);
+    moveChildBones(model_.getBones(), superParentIndex_, frameMotions);
 
-    vector<mmd::Vertex> initialVertices = model_.getVertices();
-    for (unsigned int i = 0; i < initialVertices.size(); ++i) {
-        vector<int> refBoneIndices = initialVertices[i].getRefBoneIndices();
-        vector<float> refBoneWeightList = initialVertices[i].getRefBoneWeightList();
+    for (unsigned int i = 0; i < model_.getVertices().size(); ++i) {
+        vector<int> refBoneIndices = model_.getVertices()[i].getRefBoneIndices();
+        vector<float> refBoneWeightList = model_.getVertices()[i].getRefBoneWeightList();
         Eigen::Vector3f pos(0, 0, 0);
         for (unsigned int b = 0; b < refBoneIndices.size(); ++b) {
 
             int boneIndex = refBoneIndices[b];
 
             // 移動後頂点の位置 = 移動後ボーンの回転 * (移動前頂点の位置 - 移動前ボーンの位置) + 移動後ボーンの位置
-            pos += (bones_[boneIndex].getTemporalQuaternion() *
-                    (initialVertices[i].getPosition() - bones_[boneIndex].getInitialPosition()) +
-                    bones_[boneIndex].getTemporalPosition()) *
+            pos += (model_.getBones()[boneIndex].getTemporalQuaternion() *
+                    (model_.getVertices()[i].getInitialPosition() - model_.getBones()[boneIndex].getInitialPosition()) +
+                    model_.getBones()[boneIndex].getTemporalPosition()) *
                    refBoneWeightList[b];
         }
         // refBoneIndices.size()で割る必要があるのでは？
-        vertices_[i].setPosition(pos);
+        model_.getVertices()[i].setTemporalPosition(pos);
     }
 }
 
@@ -176,9 +173,9 @@ void Renderer::display() {
             mmd::TriangleSurface triangleSurface = model_.getSurface(surfaceNo);
             Eigen::Vector3i vertexIndexies = triangleSurface.getVertexIndexies();
             for (int j = 0; j < 3; ++j) {
-                mmd::Vertex vertex = vertices_[vertexIndexies[j]];
+                mmd::Vertex vertex = model_.getVertices()[vertexIndexies[j]];
                 glTexCoord2f(vertex.getUv().x(), vertex.getUv().y());
-                glVertex3f(vertex.getPosition().x(), vertex.getPosition().y(), vertex.getPosition().z());
+                glVertex3f(vertex.getTemporalPosition().x(), vertex.getTemporalPosition().y(), vertex.getTemporalPosition().z());
             }
             ++surfaceNo;
         }
@@ -192,7 +189,7 @@ void Renderer::display() {
     glBegin(GL_POINTS);
     int boneNum = model_.getBoneNum();
     for (int b = 0; b < boneNum; ++b) {
-        Eigen::Vector3f pos = bones_[b].getTemporalPosition();
+        Eigen::Vector3f pos = model_.getBones()[b].getTemporalPosition();
         glVertex3f(pos.x(), pos.y(), pos.z());
     }
     glEnd();
@@ -201,7 +198,7 @@ void Renderer::display() {
     glLineWidth(2);
     glBegin(GL_LINES);
     for (int b = 0; b < boneNum; ++b) {
-        mmd::Bone bone = bones_[b];
+        mmd::Bone bone = model_.getBones()[b];
 
         Eigen::Vector3f pos = bone.getTemporalPosition();
         glVertex3f(pos.x(), pos.y(), pos.z());
@@ -213,7 +210,7 @@ void Renderer::display() {
                 destination = pos;
             }
             else {
-                destination = bones_[destinationBoneIndex].getTemporalPosition();
+                destination = model_.getBones()[destinationBoneIndex].getTemporalPosition();
             }
         }
         else {

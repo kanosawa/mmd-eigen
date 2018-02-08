@@ -6,9 +6,9 @@ Vertex::Vertex() {
 }
 
 
-Vertex::Vertex(const Eigen::Vector3f &position, const Eigen::Vector2f &uv,
+Vertex::Vertex(const Eigen::Vector3f &initial_position, const Eigen::Vector2f &uv,
                const vector<int> &refBoneIndices, const vector<float> &refBoneWeightList)
-        : position_(position), uv_(uv), refBoneIndices_(refBoneIndices), refBoneWeightList_(refBoneWeightList) {
+        : initial_position_(initial_position), uv_(uv), refBoneIndices_(refBoneIndices), refBoneWeightList_(refBoneWeightList) {
 }
 
 
@@ -16,13 +16,23 @@ Vertex::~Vertex() {
 }
 
 
-void Vertex::setPosition(const Eigen::Vector3f &position) {
-    position_ = position;
+void Vertex::setInitialPosition(const Eigen::Vector3f &initial_position) {
+    initial_position_ = initial_position;
 }
 
 
-const Eigen::Vector3f &Vertex::getPosition() const {
-    return position_;
+const Eigen::Vector3f &Vertex::getInitialPosition() const {
+    return initial_position_;
+}
+
+
+void Vertex::setTemporalPosition(const Eigen::Vector3f &temporal_position) {
+    temporal_position_ = temporal_position;
+}
+
+
+const Eigen::Vector3f &Vertex::getTemporalPosition() const {
+    return temporal_position_;
 }
 
 
