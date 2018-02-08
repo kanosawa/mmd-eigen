@@ -3,7 +3,7 @@
 
 #include "PmxModel.h"
 #include "MotionStream.h"
-//#include "ModelUpdater.h"
+#include "ModelUpdater.h"
 
 namespace mmd {
     /*! @brief レンダラークラス
@@ -21,10 +21,6 @@ namespace mmd {
         /*! @brief スタート
          */
         void start();
-
-        /*! @brief 更新
-         */
-        void update();
 
         /*! @brief DisplayFunc
         */
@@ -51,18 +47,9 @@ namespace mmd {
 
         ~Renderer();
 
-        void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
-                                      const vector<Motion> &frameMotions);
-
-        int searchSuperParentBone(const vector<mmd::Bone> &bones);
-
-        /*! @brief モデル
+        /*! @brief モデル更新クラス
         */
-        PmxModel model_;
-
-        /*! @brief 現在フレーム番号
-        */
-        int currentFrameNo_;
+        ModelUpdater updater_;
 
         /*! @brief ウィンドウ幅
         */
@@ -87,13 +74,6 @@ namespace mmd {
         /*! @brief 視点情報
         */
         double theta_[3], angle_[3];
-
-        vector<MotionStream> motionStreams_;
-
-        int superParentIndex_;
-
-        //ModelUpdater updater_;
-
     };
 }
 

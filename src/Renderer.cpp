@@ -33,8 +33,7 @@ void idle_glut() {
 
 
 Renderer::Renderer()
-        : currentFrameNo_(0)
-        , width_(960)
+        : width_(960)
         , height_(640)
         , mouse_l_(0)
         , mouse_m_(0)
@@ -43,7 +42,7 @@ Renderer::Renderer()
         , angle_({0, 0, 0}) {
 
     // GLUT
-    int argc;
+    int argc = 1;
     glutInit(&argc, NULL);
     glutInitWindowSize(width_, height_);
     glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH);
@@ -71,79 +70,24 @@ Renderer& Renderer::getInstance() {
 
 
 void Renderer::setParam(const PmxModel& model, const vector<MotionStream>& motionStreams) {
-    model_ = model;
-    motionStreams_ = motionStreams;
+
+    updater_.setParam(model, motionStreams);
 
     // glTexture
-    glGenTextures(model_.getTextureNum(), texname);
-    for (int i = 0; i < model_.getTextureNum(); ++i) {
+    glGenTextures(model.getTextureNum(), texname);
+    for (int i = 0; i < model.getTextureNum(); ++i) {
         glBindTexture(GL_TEXTURE_2D, texname[i]);
-        cv::Mat texture = model_.getTexture(i);
+        cv::Mat texture = model.getTexture(i);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.cols, texture.rows, 0,
                      GL_RGB, GL_UNSIGNED_BYTE, &texture.data[0]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-
-    superParentIndex_ = searchSuperParentBone(model_.getBones());
 }
 
 
 void Renderer::start() {
     glutMainLoop();
-}
-
-
-void Renderer::update()
-{
-    cout << currentFrameNo_ << endl;
-
-    vector<mmd::Motion> frameMotions(model_.getBones().size());
-    for (unsigned int i = 0; i < frameMotions.size(); ++i) {
-        if (motionStreams_[i].getLatestMotion().getFrameNo() == currentFrameNo_) {
-            frameMotions[i] = motionStreams_[i].getLatestMotion();
-        } else if (!motionStreams_[i].isLastMotion() && motionStreams_[i].getNextMotion().getFrameNo() == currentFrameNo_) {
-            frameMotions[i] = motionStreams_[i].getNextMotion();
-            motionStreams_[i].incrementPointer();
-        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && !motionStreams_[i].isLastMotion()) {
-            float ratio = float(currentFrameNo_ - motionStreams_[i].getLatestMotion().getFrameNo()) /
-                          ((motionStreams_[i].getNextMotion().getFrameNo() -
-                            motionStreams_[i].getLatestMotion().getFrameNo()));
-            Eigen::Vector3f shift = motionStreams_[i].getLatestMotion().getShift() * (1.0f - ratio) +
-                                    motionStreams_[i].getNextMotion().getShift() * ratio;
-            Eigen::Quaternionf quaternion = motionStreams_[i].getLatestMotion().getQuaternion().slerp(
-                    ratio, motionStreams_[i].getNextMotion().getQuaternion());
-            frameMotions[i] = mmd::Motion(i, currentFrameNo_, shift, quaternion);
-        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && motionStreams_[i].isLastMotion()) {
-            frameMotions[i] = motionStreams_[i].getLatestMotion();
-        } else {
-            cout << "error\n";
-        }
-    }
-
-    model_.getBones()[superParentIndex_].setTemporalPosition(
-            model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
-    model_.getBones()[superParentIndex_].setTemporalQuaternion(frameMotions[superParentIndex_].getQuaternion());
-
-    moveChildBones(model_.getBones(), superParentIndex_, frameMotions);
-
-    for (unsigned int i = 0; i < model_.getVertices().size(); ++i) {
-        vector<int> refBoneIndices = model_.getVertices()[i].getRefBoneIndices();
-        vector<float> refBoneWeightList = model_.getVertices()[i].getRefBoneWeightList();
-        Eigen::Vector3f pos(0, 0, 0);
-        for (unsigned int b = 0; b < refBoneIndices.size(); ++b) {
-
-            int boneIndex = refBoneIndices[b];
-
-            // 移動後頂点の位置 = 移動後ボーンの回転 * (移動前頂点の位置 - 移動前ボーンの位置) + 移動後ボーンの位置
-            pos += (model_.getBones()[boneIndex].getTemporalQuaternion() *
-                    (model_.getVertices()[i].getInitialPosition() - model_.getBones()[boneIndex].getInitialPosition()) +
-                    model_.getBones()[boneIndex].getTemporalPosition()) *
-                   refBoneWeightList[b];
-        }
-        // refBoneIndices.size()で割る必要があるのでは？
-        model_.getVertices()[i].setTemporalPosition(pos);
-    }
 }
 
 
@@ -163,17 +107,17 @@ void Renderer::display() {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
     int surfaceNo = 0;
-    for (int i = 0; i < model_.getMaterialNum(); ++i) {
-        int ordinaryTextureIndex = model_.getMaterial(i).getOrdinaryTextureIndex();
+    for (int i = 0; i < updater_.getModel().getMaterialNum(); ++i) {
+        int ordinaryTextureIndex = updater_.getModel().getMaterial(i).getOrdinaryTextureIndex();
         glBindTexture(GL_TEXTURE_2D, texname[ordinaryTextureIndex]);
 
         glBegin(GL_TRIANGLES);
-        int surfaceNum = model_.getMaterial(i).getSurfaceNum();
+        int surfaceNum = updater_.getModel().getMaterial(i).getSurfaceNum();
         for (int s = 0; s < surfaceNum; ++s) {
-            mmd::TriangleSurface triangleSurface = model_.getSurface(surfaceNo);
+            mmd::TriangleSurface triangleSurface = updater_.getModel().getSurface(surfaceNo);
             Eigen::Vector3i vertexIndexies = triangleSurface.getVertexIndexies();
             for (int j = 0; j < 3; ++j) {
-                mmd::Vertex vertex = model_.getVertices()[vertexIndexies[j]];
+                mmd::Vertex vertex = updater_.getModel().getVertices()[vertexIndexies[j]];
                 glTexCoord2f(vertex.getUv().x(), vertex.getUv().y());
                 glVertex3f(vertex.getTemporalPosition().x(), vertex.getTemporalPosition().y(), vertex.getTemporalPosition().z());
             }
@@ -187,9 +131,9 @@ void Renderer::display() {
     glPointSize(2);
     glColor3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_POINTS);
-    int boneNum = model_.getBoneNum();
+    int boneNum = updater_.getModel().getBoneNum();
     for (int b = 0; b < boneNum; ++b) {
-        Eigen::Vector3f pos = model_.getBones()[b].getTemporalPosition();
+        Eigen::Vector3f pos = updater_.getModel().getBones()[b].getTemporalPosition();
         glVertex3f(pos.x(), pos.y(), pos.z());
     }
     glEnd();
@@ -198,7 +142,7 @@ void Renderer::display() {
     glLineWidth(2);
     glBegin(GL_LINES);
     for (int b = 0; b < boneNum; ++b) {
-        mmd::Bone bone = model_.getBones()[b];
+        mmd::Bone bone = updater_.getModel().getBones()[b];
 
         Eigen::Vector3f pos = bone.getTemporalPosition();
         glVertex3f(pos.x(), pos.y(), pos.z());
@@ -210,7 +154,7 @@ void Renderer::display() {
                 destination = pos;
             }
             else {
-                destination = model_.getBones()[destinationBoneIndex].getTemporalPosition();
+                destination = updater_.getModel().getBones()[destinationBoneIndex].getTemporalPosition();
             }
         }
         else {
@@ -269,48 +213,8 @@ void Renderer::idle() {
     int time_now = glutGet(GLUT_ELAPSED_TIME);
     if (time_now - time_base_ > 33)
     {
-        update();
+        updater_.update();
         glutPostRedisplay();
-        ++currentFrameNo_;
         time_base_ = time_now;
     }
 }
-
-
-int Renderer::searchSuperParentBone(const vector<mmd::Bone> &bones) {
-    for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
-        if (bones[boneIndex].getParentBoneIndex() == -1) {
-            return boneIndex;
-        }
-    }
-    return -1;
-};
-
-
-void Renderer::moveChildBones(vector<mmd::Bone> &bones, const int parentBoneIndex,
-                    const vector<mmd::Motion> &frameMotions) {
-
-    vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
-    for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
-        int childBoneIndex = childBoneIndices[i];
-
-        // 移動後の位置 = 親の回転 * (元の位置 - 親の元の位置 + シフト) + 親の移動後の位置
-        // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
-        // シフトしてから回転する
-        // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
-        bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
-                                                  (bones[childBoneIndex].getInitialPosition() - bones[parentBoneIndex].getInitialPosition() +
-                                                   frameMotions[childBoneIndex].getShift()) +
-                                                  bones[parentBoneIndex].getTemporalPosition());
-
-        // 移動後の回転 = 親の回転 * 回転
-        // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
-        bones[childBoneIndex].setTemporalQuaternion(
-                bones[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
-
-        // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
-        moveChildBones(bones, childBoneIndex, frameMotions);
-    }
-}
-
-
