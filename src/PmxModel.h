@@ -2,7 +2,8 @@
 #define MMD_PMX_MODEL_H
 
 #include <opencv2/opencv.hpp>
-#include "Common.h"
+#include "Vertex.h"
+#include "Surface.h"
 #include "Material.h"
 #include "Bone.h"
 
@@ -27,7 +28,7 @@ namespace mmd {
         /*! @brief 面の追加
         * @param[in] surface 追加する面
         */
-        void pushBackSurface(const TriangleSurface &surface);
+        void pushBackSurface(const Surface &surface);
 
         /*! @brief テクスチャの追加
         * @param[in] texture 追加するテクスチャ
@@ -69,7 +70,7 @@ namespace mmd {
         * @param[in] surfaceNo 面番号
         * @return 面
         */
-        const TriangleSurface &getSurface(const unsigned int surfaceNo) const;
+        const Surface &getSurface(const unsigned int surfaceNo) const;
 
         /*! @brief 面数の取得
         * @return 面数
@@ -132,7 +133,7 @@ namespace mmd {
 
         /*! @brief モデルを構成する面群
         */
-        std::vector<TriangleSurface> surfaces_;
+        std::vector<Surface> surfaces_;
 
         /*! @brief モデルを構成するテクスチャ群
         */

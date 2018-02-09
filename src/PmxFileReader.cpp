@@ -208,8 +208,8 @@ bool PmxFileReader::readSurfaces(PmxModel &model) {
         for (int i = 0; i < 3; ++i) {
             vertexIndexies[i] = readVariableSizeUnsignedData(pmxHeaderInfo_.vertexIndexSize);
         }
-        TriangleSurface triangleSurface(vertexIndexies);
-        model.pushBackSurface(triangleSurface);
+        Surface surface(vertexIndexies);
+        model.pushBackSurface(surface);
     }
     return true;
 }

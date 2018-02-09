@@ -109,8 +109,8 @@ void Renderer::display() {
         glBegin(GL_TRIANGLES);
         int surfaceNum = updater_.getModel().getMaterial(i).getSurfaceNum();
         for (int s = 0; s < surfaceNum; ++s) {
-            mmd::TriangleSurface triangleSurface = updater_.getModel().getSurface(surfaceNo);
-            Eigen::Vector3i vertexIndexies = triangleSurface.getVertexIndexies();
+            mmd::Surface surface = updater_.getModel().getSurface(surfaceNo);
+            Eigen::Vector3i vertexIndexies = surface.getVertexIndexies();
             for (int j = 0; j < 3; ++j) {
                 mmd::Vertex vertex = updater_.getModel().getVertices()[vertexIndexies[j]];
                 glTexCoord2f(vertex.getUv().x(), vertex.getUv().y());

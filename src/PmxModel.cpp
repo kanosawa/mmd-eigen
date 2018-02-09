@@ -15,7 +15,7 @@ void PmxModel::pushBackVertex(const Vertex &vertex) {
 }
 
 
-void PmxModel::pushBackSurface(const TriangleSurface &surface) {
+void PmxModel::pushBackSurface(const Surface &surface) {
     surfaces_.push_back(surface);
 }
 
@@ -56,7 +56,7 @@ vector<Vertex> &PmxModel::getVertices() {
 }
 
 
-const TriangleSurface &PmxModel::getSurface(const unsigned int surfaceNo) const {
+const Surface &PmxModel::getSurface(const unsigned int surfaceNo) const {
     assert(surfaceNo < surfaces_.size());
     return surfaces_[surfaceNo];
 }
