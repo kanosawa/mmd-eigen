@@ -313,12 +313,15 @@ bool PmxFileReader::readBones(PmxModel &model) {
 
     for (int n = 0; n < boneNum; ++n) {
 
-        Bone bone;
+        //Bone bone;
 
-        // ボーン名（日本語）
+        // ボーン名サイズ
         int boneNameSize;
         fileStream_.read(reinterpret_cast<char *>(&boneNameSize), 4);
-        bone.setBoneName(readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true));
+
+        // ボーン名（日本語）
+        string boneName = readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true);
+        //bone.setBoneName(readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true));
 
         // ボーン名（英語）
         fileStream_.read(reinterpret_cast<char *>(&boneNameSize), 4);
@@ -327,10 +330,13 @@ bool PmxFileReader::readBones(PmxModel &model) {
         // 三次元座標
         Eigen::Vector3f position;
         fileStream_.read(reinterpret_cast<char *>(&position), 12);
-        bone.setInitialPosition(position);
+        //bone.setInitialPosition(position);
 
         // 親ボーンインデックス
-        bone.setParentBoneIndex(readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+        int parentBoneIndex = readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
+        //bone.setParentBoneIndex(readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+
+        Bone bone(boneName, position, parentBoneIndex);
 
         // 読み飛ばし
         double tmp;
