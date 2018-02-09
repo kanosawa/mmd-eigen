@@ -6,6 +6,12 @@ using namespace mmd;
 
 
 PmxFileReader::PmxFileReader(const string &filename) {
+
+    size_t pos = filename.rfind('/');
+    if (pos != string::npos) {
+        folderName_ = filename.substr(0, pos + 1);
+    }
+
     fileStream_.open(filename.c_str(), ios::binary);
     if (!fileStream_) {
         cout << "File Open Error in PmxFileReader()\n";
@@ -227,13 +233,10 @@ bool PmxFileReader::readTextures(PmxModel &model) {
         // テクスチャファイル名取得
         int nameSize;
         fileStream_.read(reinterpret_cast<char *>(&nameSize), 4);
-        string textureNameTstring = readFromUTF(fileStream_, nameSize, pmxHeaderInfo_.encodeType, true);
-
-        char textureNameChar[BUFSIZ];
-        strcpy(textureNameChar, textureNameTstring.c_str());
+        string textureName = readFromUTF(fileStream_, nameSize, pmxHeaderInfo_.encodeType, true);
 
         // テクスチャ画像取得
-        cv::Mat textureImage = cv::imread(textureNameChar);
+        cv::Mat textureImage = cv::imread((folderName_ + textureName).c_str());
         cv::cvtColor(textureImage, textureImage, CV_BGR2RGB);
         model.pushBackTexture(textureImage);
     }

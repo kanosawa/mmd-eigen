@@ -157,6 +157,8 @@ namespace mmd {
         /*! @brief PMXファイルヘッダ情報
         */
         PmxHeaderInfo pmxHeaderInfo_;
+
+        string folderName_;
     };
 }
 

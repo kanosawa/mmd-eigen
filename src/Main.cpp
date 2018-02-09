@@ -8,13 +8,13 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     // PMXファイルの入力
-    mmd::PmxFileReader pmxFileReader("maya.pmx");
+    mmd::PmxFileReader pmxFileReader("/home/kanosawa/src/mmd-eigen/data/maya.pmx");
     mmd::PmxModel model;
     pmxFileReader.readFile(model);
 
     // VMDファイルの入力
     vector<mmd::Motion> motions;
-    mmd::VmdFileReader vmdFileReader("maya.vmd", model.getBones());
+    mmd::VmdFileReader vmdFileReader("/home/kanosawa/src/mmd-eigen/data/maya.vmd", model.getBones());
     vmdFileReader.readFile(motions);
 
     // MotionをBoneごとに分ける
