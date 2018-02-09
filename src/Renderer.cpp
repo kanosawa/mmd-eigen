@@ -1,4 +1,3 @@
-#include <GL/glew.h>
 #include <GL/glut.h>
 #include "Renderer.h"
 
@@ -41,7 +40,6 @@ Renderer::Renderer()
         , theta_({0, 0, 0})
         , angle_({0, 0, 0}) {
 
-    // GLUT
     int argc = 1;
     glutInit(&argc, NULL);
     glutInitWindowSize(width_, height_);
@@ -53,9 +51,6 @@ Renderer::Renderer()
     glutReshapeFunc(resize_glut);
     glutIdleFunc(idle_glut);
     glClearColor(0.0, 0.0, 1.0, 0.0);
-
-    // GLEW
-    glewInit();
 }
 
 

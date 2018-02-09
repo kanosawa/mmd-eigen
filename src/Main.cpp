@@ -47,36 +47,5 @@ int main(int argc, char *argv[]) {
     mmd::Renderer::getInstance().setParam(model, motionStreams);
     mmd::Renderer::getInstance().start();
 
-    /*
-    vector<vector<mmd::Motion>> boneMotions; // ボーンごとのモーション
-    vector<vector<mmd::Motion>::iterator> boneMotionsItrs;
-
-    // MotionをBoneごとに分ける
-    boneMotions.resize(model.getBones().size());
-    for (unsigned int i = 0; i < motions.size(); ++i) {
-        boneMotions[motions[i].getBoneIndex()].push_back(motions[i]);
-    }
-
-    // Motionをフレーム順にソート
-    for (unsigned int i = 0; i < boneMotions.size(); ++i) {
-        std::sort(boneMotions[i].begin(), boneMotions[i].end(), [](const mmd::Motion& a, const mmd::Motion& b){
-            return a.getFrameNo() < b.getFrameNo();
-        });
-    }
-
-    // フレーム0のモーションが存在しなければ挿入する
-    for (unsigned int boneIndex = 0; boneIndex < boneMotions.size(); ++boneIndex) {
-        auto head = boneMotions[boneIndex].begin();
-        if (head == boneMotions[boneIndex].end() || head->getFrameNo() != 0) {
-            boneMotions[boneIndex].insert(
-                    head, mmd::Motion(boneIndex, 0, Eigen::Vector3f(0, 0, 0), Eigen::Quaternionf(1, 0, 0, 0)));
-        }
-    }
-
-    mmd::Renderer::getInstance().setParam(model, boneMotions);
-    //mmd::Renderer::getInstance().update();
-    mmd::Renderer::getInstance().start();
-    */
-
     return 0;
 }
