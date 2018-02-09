@@ -193,8 +193,18 @@ bool PmxFileReader::readVertices(PmxModel &model) {
             fileStream_.read(reinterpret_cast<char *>(&weight), 4);
             boneWeightList.push_back(weight);
             boneWeightList.push_back(1.0f - weight);
-        } else {
-            cout << "This code does not support BDEF4 and SDEF\n";
+        } else if (weightType == 2) {
+            for (int i = 0; i < 4; ++i) {
+                boneIndices.push_back(readVariableSizeUnsignedData(pmxHeaderInfo_.boneIndexSize));
+            }
+            for (int i = 0; i < 4; ++i) {
+                float weight;
+                fileStream_.read(reinterpret_cast<char *>(&weight), 4);
+                boneWeightList.push_back(weight);
+            }
+        }
+        else {
+            cout << "This code does not support SDEF\n";
         }
 
         model.pushBackVertex(Vertex(pos, uv, boneIndices, boneWeightList));
