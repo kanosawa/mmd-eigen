@@ -69,10 +69,13 @@ void Renderer::setParam(const PmxModel& model, const vector<MotionStream>& motio
     updater_.setParam(model, motionStreams);
 
     // glTexture
-    glGenTextures(model.getTextureNum(), texname);
-    for (int i = 0; i < model.getTextureNum(); ++i) {
+    //glGenTextures(model.getTextureNum(), texname);
+    glGenTextures(model.getTextures().size(), texname);
+    //for (int i = 0; i < model.getTextureNum(); ++i) {
+    for (int i = 0; i < model.getTextures().size(); ++i) {
         glBindTexture(GL_TEXTURE_2D, texname[i]);
-        cv::Mat texture = model.getTexture(i);
+        //cv::Mat texture = model.getTexture(i);
+        cv::Mat texture = model.getTextures()[i];
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.cols, texture.rows, 0,
                      GL_RGB, GL_UNSIGNED_BYTE, &texture.data[0]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -102,14 +105,18 @@ void Renderer::display() {
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
     int surfaceNo = 0;
-    for (int i = 0; i < updater_.getModel().getMaterialNum(); ++i) {
-        int ordinaryTextureIndex = updater_.getModel().getMaterial(i).getOrdinaryTextureIndex();
+    //for (int i = 0; i < updater_.getModel().getMaterialNum(); ++i) {
+    for (int i = 0; i < updater_.getModel().getMaterials().size(); ++i) {
+        //int ordinaryTextureIndex = updater_.getModel().getMaterial(i).getOrdinaryTextureIndex();
+        int ordinaryTextureIndex = updater_.getModel().getMaterials()[i].getOrdinaryTextureIndex();
         glBindTexture(GL_TEXTURE_2D, texname[ordinaryTextureIndex]);
 
         glBegin(GL_TRIANGLES);
-        int surfaceNum = updater_.getModel().getMaterial(i).getSurfaceNum();
+        //int surfaceNum = updater_.getModel().getMaterial(i).getSurfaceNum();
+        int surfaceNum = updater_.getModel().getMaterials()[i].getSurfaceNum();
         for (int s = 0; s < surfaceNum; ++s) {
-            mmd::Surface surface = updater_.getModel().getSurface(surfaceNo);
+            //mmd::Surface surface = updater_.getModel().getSurface(surfaceNo);
+            mmd::Surface surface = updater_.getModel().getSurfaces()[surfaceNo];
             Eigen::Vector3i vertexIndexies = surface.getVertexIndexies();
             for (int j = 0; j < 3; ++j) {
                 mmd::Vertex vertex = updater_.getModel().getVertices()[vertexIndexies[j]];
@@ -126,7 +133,8 @@ void Renderer::display() {
     glPointSize(2);
     glColor3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_POINTS);
-    int boneNum = updater_.getModel().getBoneNum();
+    //int boneNum = updater_.getModel().getBoneNum();
+    int boneNum = updater_.getModel().getBones().size();
     for (int b = 0; b < boneNum; ++b) {
         Eigen::Vector3f pos = updater_.getModel().getBones()[b].getTemporalPosition();
         glVertex3f(pos.x(), pos.y(), pos.z());

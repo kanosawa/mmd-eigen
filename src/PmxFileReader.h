@@ -1,10 +1,8 @@
 #ifndef MMD_PMX_FILE_READER_H
 #define MMD_PMX_FILE_READER_H
 
-#include <memory>
 #include <fstream>
 #include "PmxModel.h"
-#include "MultiCharaCodeFileReader.h"
 
 namespace mmd {
     /*! @brief PMXファイル読み込みクラス

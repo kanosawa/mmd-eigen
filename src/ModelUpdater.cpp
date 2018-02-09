@@ -41,11 +41,14 @@ void ModelUpdater::update()
         }
     }
 
-    model_.getBones()[superParentIndex_].setTemporalPosition(
+    //model_.getBones()[superParentIndex_].setTemporalPosition(
+    model_.setBoneTemporalPosition(superParentIndex_,
             model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
-    model_.getBones()[superParentIndex_].setTemporalQuaternion(frameMotions[superParentIndex_].getQuaternion());
+    //model_.getBones()[superParentIndex_].setTemporalQuaternion(frameMotions[superParentIndex_].getQuaternion());
+    model_.setBoneTemporalQuaternion(superParentIndex_, frameMotions[superParentIndex_].getQuaternion());
 
-    moveChildBones(model_.getBones(), superParentIndex_, frameMotions);
+    //moveChildBones(model_.getBones(), superParentIndex_, frameMotions);
+    moveChildBones(superParentIndex_, frameMotions);
 
     for (unsigned int i = 0; i < model_.getVertices().size(); ++i) {
         vector<int> refBoneIndices = model_.getVertices()[i].getRefBoneIndices();
@@ -62,7 +65,8 @@ void ModelUpdater::update()
                    refBoneWeightList[b];
         }
         // refBoneIndices.size()で割る必要があるのでは？
-        model_.getVertices()[i].setTemporalPosition(pos);
+        //model_.getVertices()[i].setTemporalPosition(pos);
+        model_.setVertexTemporalPosition(i, pos);
     }
 }
 
@@ -79,10 +83,12 @@ const PmxModel& ModelUpdater::getModel() const {
 }
 
 
-void ModelUpdater::moveChildBones(vector<mmd::Bone> &bones, const int parentBoneIndex,
+//void ModelUpdater::moveChildBones(vector<mmd::Bone> &bones, const int parentBoneIndex,
+void ModelUpdater::moveChildBones(const int parentBoneIndex,
                               const vector<mmd::Motion> &frameMotions) {
 
-    vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
+    //vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
+    vector<int> childBoneIndices = model_.getBones()[parentBoneIndex].getChildBoneIndices();
     for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
         int childBoneIndex = childBoneIndices[i];
 
@@ -90,18 +96,29 @@ void ModelUpdater::moveChildBones(vector<mmd::Bone> &bones, const int parentBone
         // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
         // シフトしてから回転する
         // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
+        /*
         bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
                                                   (bones[childBoneIndex].getInitialPosition() - bones[parentBoneIndex].getInitialPosition() +
                                                    frameMotions[childBoneIndex].getShift()) +
                                                   bones[parentBoneIndex].getTemporalPosition());
+                                                  */
+        model_.setBoneTemporalPosition(childBoneIndex, model_.getBones()[parentBoneIndex].getTemporalQuaternion() *
+                (model_.getBones()[childBoneIndex].getInitialPosition() - model_.getBones()[parentBoneIndex].getInitialPosition() +
+                frameMotions[childBoneIndex].getShift()) +
+                model_.getBones()[parentBoneIndex].getTemporalPosition());
 
         // 移動後の回転 = 親の回転 * 回転
         // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
+        /*
         bones[childBoneIndex].setTemporalQuaternion(
                 bones[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
+                */
+        model_.setBoneTemporalQuaternion(childBoneIndex,
+            model_.getBones()[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
 
         // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
-        moveChildBones(bones, childBoneIndex, frameMotions);
+        //moveChildBones(bones, childBoneIndex, frameMotions);
+        moveChildBones(childBoneIndex, frameMotions);
     }
 }
 

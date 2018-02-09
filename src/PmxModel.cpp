@@ -35,74 +35,23 @@ void PmxModel::pushBackBone(const Bone &bone) {
 }
 
 
-const Vertex &PmxModel::getVertex(const unsigned int vertexNo) const {
-    assert(vertexNo < vertices_.size());
-    return vertices_[vertexNo];
-}
-
-
-const int PmxModel::getVertexNum() const {
-    return static_cast<int>(vertices_.size());
-}
-
-
 const vector<Vertex> &PmxModel::getVertices() const {
     return vertices_;
 }
 
 
-vector<Vertex> &PmxModel::getVertices() {
-    return vertices_;
+const vector<Surface> &PmxModel::getSurfaces() const {
+    return surfaces_;
 }
 
 
-const Surface &PmxModel::getSurface(const unsigned int surfaceNo) const {
-    assert(surfaceNo < surfaces_.size());
-    return surfaces_[surfaceNo];
+const vector<cv::Mat> &PmxModel::getTextures() const {
+    return textures_;
 }
 
 
-const int PmxModel::getSurfaceNum() const {
-    return static_cast<int>(surfaces_.size());
-}
-
-
-const cv::Mat &PmxModel::getTexture(const unsigned int textureNo) const {
-    assert(textureNo < textures_.size());
-    return textures_[textureNo];
-}
-
-
-const int PmxModel::getTextureNum() const {
-    return static_cast<int>(textures_.size());
-}
-
-
-const Material &PmxModel::getMaterial(const unsigned int materialNo) const {
-    assert(materialNo < materials_.size());
-    return materials_[materialNo];
-}
-
-
-int PmxModel::getMaterialNum() const {
-    return static_cast<int>(materials_.size());
-}
-
-
-const Bone &PmxModel::getBone(const unsigned int boneNo) const {
-    assert(boneNo < bones_.size());
-    return bones_[boneNo];
-}
-
-
-Bone &PmxModel::getBone(const unsigned int boneNo) {
-    assert(boneNo < bones_.size());
-    return bones_[boneNo];
-}
-
-
-const int PmxModel::getBoneNum() const {
-    return static_cast<int>(bones_.size());
+const vector<Material> &PmxModel::getMaterials() const {
+    return materials_;
 }
 
 
@@ -111,7 +60,21 @@ const vector<Bone> &PmxModel::getBones() const {
 }
 
 
-vector<Bone> &PmxModel::getBones() {
-    return bones_;
+void PmxModel::pushBackChildBoneIndex(const int boneIndex, const int childBoneIndex) {
+    bones_[boneIndex].pushBackChildBoneIndex(childBoneIndex);
 }
 
+
+void PmxModel::setBoneTemporalPosition(const int boneIndex, const Eigen::Vector3f &temporalPosition) {
+    bones_[boneIndex].setTemporalPosition(temporalPosition);
+}
+
+
+void PmxModel::setBoneTemporalQuaternion(const int boneIndex, const Eigen::Quaternionf &temporalQuaternion) {
+    bones_[boneIndex].setTemporalQuaternion(temporalQuaternion);
+}
+
+
+void PmxModel::setVertexTemporalPosition(const int vertexIndex, const Eigen::Vector3f &temporalPosition) {
+    vertices_[vertexIndex].setTemporalPosition(temporalPosition);
+}

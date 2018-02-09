@@ -8,77 +8,25 @@ namespace mmd {
     */
     class Material {
     public:
-        /*! @brief コンストラクタ
-        */
         Material();
+        ~Material();
 
         /*! @brief コンストラクタ
+         * @param[in] diffuse ディフューズ
+         * @param[in] specular スペキュラー
+         * @param[in] specularCoef スペキュラー係数
+         * @param[in] ambient アンビエント
+         * @param[in] ordinaryTextureIndex 通常テクスチャインデックス
+         * @param[in] surfaceNum マテリアルに対応するサーフェス数
         */
         Material(const Eigen::Vector4f &diffuse, const Eigen::Vector3f &specular, const float specularCoef,
                  const Eigen::Vector3f &ambient, const unsigned char ordinaryTextureIndex, const int surfaceNum);
 
-        /*! @brief デストラクタ
-        */
-        ~Material();
-
-        /*! @brief ディフューズの設定
-        * @param[in] diffuse ディフューズ
-        */
-        void setDiffuse(const Eigen::Vector4f &diffuse);
-
-        /*! @brief ディフューズの取得
-        * @return ディフューズ
-        */
         const Eigen::Vector4f &getDiffuse() const;
-
-        /*! @brief スペキュラーの設定
-        * @param[in] specular スペキュラー
-        */
-        void setSpecular(const Eigen::Vector3f &specular);
-
-        /*! @brief スペキュラーの取得
-        * @return スペキュラー
-        */
         const Eigen::Vector3f &getSpecular() const;
-
-        /*! @brief スペキュラー係数の設定
-        * @param[in] specularCoef スペキュラー係数
-        */
-        void setSpecularCoef(const float specularCoef);
-
-        /*! @brief スペキュラー係数の取得
-        * @return スペキュラー係数
-        */
         const float getSpecularCoef() const;
-
-        /*! @brief アンビエントの設定
-        * @param[in] ambient アンビエント
-        */
-        void setAmbient(const Eigen::Vector3f &ambient);
-
-        /*! @brief アンビエントの取得
-        * @return アンビエント
-        */
         const Eigen::Vector3f &getAmbient() const;
-
-        /*! @brief 通常テクスチャインデックスの設定
-        * @param[in] ordinaryTextureIndex 通常テクスチャインデックス
-        */
-        void setOrdinaryTextureIndex(const unsigned char ordinaryTextureIndex);
-
-        /*! @brief 通常テクスチャインデックスの取得
-        * @return 通常テクスチャインデックス
-        */
         const unsigned char getOrdinaryTextureIndex() const;
-
-        /*! @brief 面数の設定
-        * @param[in] surfaceNum 面数
-        */
-        void setSurfaceNum(const int surfaceNum);
-
-        /*! @brief 面数の取得
-        * @return 面数
-        */
         const int getSurfaceNum() const;
 
     private:
@@ -102,7 +50,7 @@ namespace mmd {
         */
         unsigned char ordinaryTextureIndex_;
 
-        /*! @brief 面数
+        /*! @brief マテリアルに対応するサーフェス数
         */
         int surfaceNum_;
     };

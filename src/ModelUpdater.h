@@ -44,7 +44,8 @@ namespace mmd {
          * @param[in] parentBoneIndex 親ボーンインデックス
          * @param[in] frameMotions フレームモーション
         */
-        void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
+        //void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
+        void moveChildBones(const int parentBoneIndex,
                             const vector<Motion> &frameMotions);
 
         /*! @brief 現在フレーム番号

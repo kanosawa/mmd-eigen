@@ -1,7 +1,9 @@
 #include "PmxFileReader.h"
+#include "MultiCharaCodeFileReader.h"
 
 using namespace std;
 using namespace mmd;
+
 
 PmxFileReader::PmxFileReader(const string &filename) {
     fileStream_.open(filename.c_str(), ios::binary);
@@ -36,7 +38,7 @@ void PmxFileReader::readFile(PmxModel& model) {
         exit(0);
     }
 
-    // 面の読み込み
+    // サーフェスの読み込み
     if (!readSurfaces(model)) {
         cout << "PmxFileReader::readFile() : Surfaces Error\n";
         exit(0);
@@ -48,7 +50,7 @@ void PmxFileReader::readFile(PmxModel& model) {
         exit(0);
     }
 
-    // 材質の読み込み
+    // マテリアルの読み込み
     if (!readMaterials(model)) {
         cout << "PmxFileReader::readFile() : Materials Error\n";
         exit(0);
@@ -70,10 +72,11 @@ void PmxFileReader::readFile(PmxModel& model) {
 bool PmxFileReader::readHeader(PmxModel &model) {
     // "PMX "の確認(ASCII)
     const int PMX_LENGTH = 4;
-    unsigned char charPmx[PMX_LENGTH];
+    char charPmx[PMX_LENGTH];
     fileStream_.read(reinterpret_cast<char *>(charPmx), PMX_LENGTH);
-    if ((charPmx[0] != 0x50) || (charPmx[1] != 0x4d) || (charPmx[2] != 0x58) || (charPmx[3] != 0x20))
+    if (strncmp(charPmx, "PMX ", PMX_LENGTH) != 0) {
         return false;
+    }
 
     // バージョンの確認
     float pmxVersion;
@@ -313,16 +316,12 @@ bool PmxFileReader::readBones(PmxModel &model) {
 
     for (int n = 0; n < boneNum; ++n) {
 
-        //Bone bone;
-
         // ボーン名サイズ
         int boneNameSize;
         fileStream_.read(reinterpret_cast<char *>(&boneNameSize), 4);
 
         // ボーン名（日本語）
         string boneName = readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true);
-        //bone.setBoneName(readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true));
-
         // ボーン名（英語）
         fileStream_.read(reinterpret_cast<char *>(&boneNameSize), 4);
         readFromUTF(fileStream_, boneNameSize, pmxHeaderInfo_.encodeType, true);
@@ -330,12 +329,11 @@ bool PmxFileReader::readBones(PmxModel &model) {
         // 三次元座標
         Eigen::Vector3f position;
         fileStream_.read(reinterpret_cast<char *>(&position), 12);
-        //bone.setInitialPosition(position);
 
         // 親ボーンインデックス
         int parentBoneIndex = readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
-        //bone.setParentBoneIndex(readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
 
+        // ボーンの生成
         Bone bone(boneName, position, parentBoneIndex);
 
         // 読み飛ばし
@@ -420,8 +418,8 @@ bool PmxFileReader::readBones(PmxModel &model) {
 bool PmxFileReader::calcChildBoneIndices(PmxModel &model) {
     // 全ての親ボーンの探索
     int parentIndex = -1;
-    for (int boneIndex = 0; boneIndex < model.getBoneNum(); ++boneIndex) {
-        if (model.getBone(boneIndex).getParentBoneIndex() == parentIndex) {
+    for (int boneIndex = 0; boneIndex < model.getBones().size(); ++boneIndex) {
+        if (model.getBones()[boneIndex].getParentBoneIndex() == parentIndex) {
             parentIndex = boneIndex;
             break;
         }
@@ -442,11 +440,11 @@ bool PmxFileReader::calcChildBoneIndices(PmxModel &model) {
 void PmxFileReader::searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices) {
     for (unsigned int parent = 0; parent < parentBoneIndices.size(); ++parent) {
         vector<int> childBoneIndices;
-        for (int child = 0; child < model.getBoneNum(); ++child) {
+        for (int child = 0; child < model.getBones().size(); ++child) {
             // もし、あるボーンにparentIndices[i]が親ボーンとして登録されていたら
-            if (model.getBone(child).getParentBoneIndex() == parentBoneIndices[parent]) {
+            if (model.getBones()[child].getParentBoneIndex() == parentBoneIndices[parent]) {
                 // そのボーンインデックスを子ボーンインデックスとして親ボーンに登録
-                model.getBone(parentBoneIndices[parent]).pushBackChildBoneIndex(child);
+                model.pushBackChildBoneIndex(parentBoneIndices[parent], child);
                 // 登録した子ボーンは後で親ボーンとして参照するのでvectorに突っ込んでおく
                 childBoneIndices.push_back(child);
             }

@@ -7,12 +7,12 @@ Bone::Bone() {
 }
 
 
-Bone::Bone(const string &boneName, const Eigen::Vector3f &initialPosition, const int parentBoneIndex)
-        : boneName_(boneName), initialPosition_(initialPosition), parentBoneIndex_(parentBoneIndex) {
+Bone::~Bone() {
 }
 
 
-Bone::~Bone() {
+Bone::Bone(const string &boneName, const Eigen::Vector3f &initialPosition, const int parentBoneIndex)
+        : boneName_(boneName), initialPosition_(initialPosition), parentBoneIndex_(parentBoneIndex) {
 }
 
 
