@@ -16,6 +16,11 @@ Motion::~Motion() {
 }
 
 
+void Motion::setQuaternion(const Eigen::Quaternionf& quaternion) {
+    quaternion_ = quaternion;
+}
+
+
 const int Motion::getBoneIndex() const {
     return boneIndex_;
 }

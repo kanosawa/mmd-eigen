@@ -11,6 +11,29 @@ namespace mmd {
     */
     class Bone {
     public:
+
+        struct IK {
+            /*! @brief ターゲットボーンインデックス
+            */
+            int targetIndex;
+
+            /*! @brief ループ回数
+            */
+            int loopNum;
+
+            /*! @brief 制限角度
+            */
+            float limitAngle;
+
+            /*! @brief リンクボーンインデックス
+            */
+            vector<int> linkIndices;
+
+            /*! @brief 角度制限フラグ
+            */
+            vector<bool> angleLimitFlags;
+        };
+
         Bone();
         ~Bone();
 
@@ -24,6 +47,8 @@ namespace mmd {
         void setDestinationFlag(const bool destinationFlag);
         void setOffset(const Eigen::Vector3f &offset);
         void setDestinationBoneIndex(const int destinationBoneIndex);
+        void setIKFlag(const bool IKFlag);
+        void setIK(const IK &ik);
         void setTemporalPosition(const Eigen::Vector3f &temporalPosition);
         void setTemporalQuaternion(const Eigen::Quaternionf &temporalQuaternion);
 
@@ -34,6 +59,8 @@ namespace mmd {
         const Eigen::Vector3f &getOffset() const;
         const int getDestinationBoneIndex() const;
         const vector<int> &getChildBoneIndices() const;
+        const bool getIKFlag() const;
+        const IK &getIK() const;
         const Eigen::Vector3f &getTemporalPosition() const;
         const Eigen::Quaternionf &getTemporalQuaternion() const;
 
@@ -71,6 +98,10 @@ namespace mmd {
         */
         vector<int> childBoneIndices_;
 
+        /*! @brief IKFlag
+        */
+        bool IKFlag_;
+
         /*! @brief 三次元座標(temporal)
         */
         Eigen::Vector3f temporalPosition_;
@@ -78,6 +109,10 @@ namespace mmd {
         /*! @brief クォータニオン(temporal)
         */
         Eigen::Quaternionf temporalQuaternion_;
+
+        /*! @brief IK
+        */
+        IK ik_;
     };
 }
 

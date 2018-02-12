@@ -18,6 +18,7 @@ void ModelUpdater::update()
     ++currentFrameNo_;
     cout << currentFrameNo_ << endl;
 
+    // frameMotion
     vector<mmd::Motion> frameMotions(model_.getBones().size());
     for (unsigned int i = 0; i < frameMotions.size(); ++i) {
         if (motionStreams_[i].getLatestMotion().getFrameNo() == currentFrameNo_) {
@@ -41,15 +42,51 @@ void ModelUpdater::update()
         }
     }
 
-    //model_.getBones()[superParentIndex_].setTemporalPosition(
+    // Bone
     model_.setBoneTemporalPosition(superParentIndex_,
-            model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
-    //model_.getBones()[superParentIndex_].setTemporalQuaternion(frameMotions[superParentIndex_].getQuaternion());
+                                   model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
     model_.setBoneTemporalQuaternion(superParentIndex_, frameMotions[superParentIndex_].getQuaternion());
-
-    //moveChildBones(model_.getBones(), superParentIndex_, frameMotions);
     moveChildBones(superParentIndex_, frameMotions);
 
+    // IK
+    for (unsigned int b = 0; b < model_.getBones().size(); ++b) {
+        if (model_.getBones()[b].getIKFlag()) {
+
+            int targetIndex = model_.getBones()[b].getIK().targetIndex;
+            for (int i = 0; i < model_.getBones()[b].getIK().loopNum; ++i) {
+                for (int l = 0; l < model_.getBones()[b].getIK().linkIndices.size(); ++l) {
+
+                    Bone::IK ik = model_.getBones()[b].getIK();
+
+                    int linkIndex = model_.getBones()[b].getIK().linkIndices[l];
+
+                    Eigen::Vector3f ikPos = model_.getBones()[b].getTemporalPosition();
+                    Eigen::Vector3f targetPos = model_.getBones()[targetIndex].getTemporalPosition();
+                    Eigen::Vector3f linkPos = model_.getBones()[linkIndex].getTemporalPosition();
+
+                    Eigen::Vector3f targetVec = targetPos - linkPos;
+                    Eigen::Vector3f ikVec = ikPos - linkPos;
+
+                    targetVec.normalize();
+                    ikVec.normalize();
+                    float angle = acos(targetVec.dot(ikVec));
+                    Eigen::Vector3f cross = targetVec.cross(ikVec);
+                    cross.normalize();
+                    Eigen::AngleAxisf mat(angle, cross);
+
+                    frameMotions[linkIndex].setQuaternion(
+                            mat * frameMotions[linkIndex].getQuaternion());
+
+                    model_.setBoneTemporalPosition(superParentIndex_,
+                                                   model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
+                    model_.setBoneTemporalQuaternion(superParentIndex_, frameMotions[superParentIndex_].getQuaternion());
+                    moveChildBones(superParentIndex_, frameMotions);
+                }
+            }
+        }
+    }
+
+    // Vertex
     for (unsigned int i = 0; i < model_.getVertices().size(); ++i) {
         vector<int> refBoneIndices = model_.getVertices()[i].getRefBoneIndices();
         vector<float> refBoneWeightList = model_.getVertices()[i].getRefBoneWeightList();
@@ -64,8 +101,6 @@ void ModelUpdater::update()
                     model_.getBones()[boneIndex].getTemporalPosition()) *
                    refBoneWeightList[b];
         }
-        // refBoneIndices.size()で割る必要があるのでは？
-        //model_.getVertices()[i].setTemporalPosition(pos);
         model_.setVertexTemporalPosition(i, pos);
     }
 }
@@ -96,12 +131,6 @@ void ModelUpdater::moveChildBones(const int parentBoneIndex,
         // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
         // シフトしてから回転する
         // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
-        /*
-        bones[childBoneIndex].setTemporalPosition(bones[parentBoneIndex].getTemporalQuaternion() *
-                                                  (bones[childBoneIndex].getInitialPosition() - bones[parentBoneIndex].getInitialPosition() +
-                                                   frameMotions[childBoneIndex].getShift()) +
-                                                  bones[parentBoneIndex].getTemporalPosition());
-                                                  */
         model_.setBoneTemporalPosition(childBoneIndex, model_.getBones()[parentBoneIndex].getTemporalQuaternion() *
                 (model_.getBones()[childBoneIndex].getInitialPosition() - model_.getBones()[parentBoneIndex].getInitialPosition() +
                 frameMotions[childBoneIndex].getShift()) +

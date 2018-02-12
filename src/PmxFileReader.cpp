@@ -367,6 +367,7 @@ bool PmxFileReader::readBones(PmxModel &model) {
         short extParentChangeMask = 0x2000;
         bool destinationFlag = ((boneFlag & destinationMask) != 0);
         bool IKFlag = ((boneFlag & IKMask) != 0);
+        bone.setIKFlag(IKFlag);
         bool rotationAddFlag = ((boneFlag & rotationAddMask) != 0);
         bool moveAddFlag = ((boneFlag & moveAddMask) != 0);
         bool axisFixFlag = ((boneFlag & axisFixMask) != 0);
@@ -403,22 +404,25 @@ bool PmxFileReader::readBones(PmxModel &model) {
         }
 
         if (IKFlag) {
-            fileStream_.read(reinterpret_cast<char *>(&tmp), pmxHeaderInfo_.boneIndexSize);
-            fileStream_.read(reinterpret_cast<char *>(&tmp), 8);
-
+            Bone::IK ik;
+            ik.targetIndex = readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
+            fileStream_.read(reinterpret_cast<char *>(&ik.loopNum), 4);
+            fileStream_.read(reinterpret_cast<char *>(&ik.limitAngle), 4);
             int IKLinkNum;
             fileStream_.read(reinterpret_cast<char *>(&IKLinkNum), 4);
             for (int i = 0; i < IKLinkNum; ++i) {
-                fileStream_.read(reinterpret_cast<char *>(&tmp), pmxHeaderInfo_.boneIndexSize);
+                ik.linkIndices.push_back(readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
 
                 bool angleLimitFlag;
                 fileStream_.read(reinterpret_cast<char *>(&angleLimitFlag), 1);
+                ik.angleLimitFlags.push_back(angleLimitFlag);
                 if (angleLimitFlag) {
                     Eigen::Vector3f tmp;
                     fileStream_.read(reinterpret_cast<char *>(&tmp), 12);
                     fileStream_.read(reinterpret_cast<char *>(&tmp), 12);
                 }
             }
+            bone.setIK(ik);
         }
 
         model.pushBackBone(bone);

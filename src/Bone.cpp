@@ -31,8 +31,13 @@ void Bone::setDestinationBoneIndex(const int destinationBoneIndex) {
 }
 
 
-void Bone::pushBackChildBoneIndex(const int childBoneIndex) {
-    childBoneIndices_.push_back(childBoneIndex);
+void Bone::setIKFlag(const bool IKFlag) {
+    IKFlag_ = IKFlag;
+}
+
+
+void Bone::setIK(const Bone::IK &ik) {
+    ik_ = ik;
 }
 
 
@@ -81,6 +86,16 @@ const vector<int> &Bone::getChildBoneIndices() const {
 }
 
 
+const bool Bone::getIKFlag() const {
+    return IKFlag_;
+}
+
+
+const Bone::IK &Bone::getIK() const {
+    return ik_;
+}
+
+
 const Eigen::Vector3f &Bone::getTemporalPosition() const {
     return temporalPosition_;
 }
@@ -88,4 +103,9 @@ const Eigen::Vector3f &Bone::getTemporalPosition() const {
 
 const Eigen::Quaternionf &Bone::getTemporalQuaternion() const {
     return temporalQuaternion_;
+}
+
+
+void Bone::pushBackChildBoneIndex(const int childBoneIndex) {
+    childBoneIndices_.push_back(childBoneIndex);
 }

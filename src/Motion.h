@@ -24,6 +24,8 @@ namespace mmd {
         */
         ~Motion();
 
+        void setQuaternion(const Eigen::Quaternionf& quaternion);
+
         /*! @brief ボーンインデックスの取得
         * @return ボーンインデックス
         */
