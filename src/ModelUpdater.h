@@ -9,13 +9,11 @@ namespace mmd {
     */
     class ModelUpdater {
     public:
-        /*! @brief コンストラクタ
-        */
-        ModelUpdater();
 
-        /*! @brief デストラクタ
-        */
+        ModelUpdater();
         ~ModelUpdater();
+
+        const PmxModel& getModel() const;
 
         /*! @brief モデルを更新
         */
@@ -26,11 +24,6 @@ namespace mmd {
          * @param[in] motionStreams モーションストリーム
         */
         void setParam(const PmxModel& model, const vector<MotionStream>& motionStreams);
-
-        /*! @brief モデルを取得
-         * @return モデル
-        */
-        const PmxModel& getModel() const;
 
     private:
         /*! @brief 全ての親ボーンを探索

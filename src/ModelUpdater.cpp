@@ -18,15 +18,19 @@ void ModelUpdater::update()
     ++currentFrameNo_;
     cout << currentFrameNo_ << endl;
 
-    // frameMotion
     vector<mmd::Motion> frameMotions(model_.getBones().size());
     for (unsigned int i = 0; i < frameMotions.size(); ++i) {
-        if (motionStreams_[i].getLatestMotion().getFrameNo() == currentFrameNo_) {
+        // ちょうどそのフレームのモーションデータがある場合は、それをそのまま使う
+        // 既にモーションデータの末尾まで到達してる場合も、その末尾のデータをそのまま使う
+        if (motionStreams_[i].getLatestMotion().getFrameNo() == currentFrameNo_ ||
+            motionStreams_[i].isLastMotion()) {
             frameMotions[i] = motionStreams_[i].getLatestMotion();
-        } else if (!motionStreams_[i].isLastMotion() && motionStreams_[i].getNextMotion().getFrameNo() == currentFrameNo_) {
+        } // モーションストリームの次のデータが現フレームのデータの場合は、次のデータを使い、ポインタも進める
+        else if (motionStreams_[i].getNextMotion().getFrameNo() == currentFrameNo_) {
             frameMotions[i] = motionStreams_[i].getNextMotion();
             motionStreams_[i].incrementPointer();
-        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && !motionStreams_[i].isLastMotion()) {
+        } // それ以外の場合は補間
+        else {
             float ratio = float(currentFrameNo_ - motionStreams_[i].getLatestMotion().getFrameNo()) /
                           ((motionStreams_[i].getNextMotion().getFrameNo() -
                             motionStreams_[i].getLatestMotion().getFrameNo()));
@@ -35,10 +39,6 @@ void ModelUpdater::update()
             Eigen::Quaternionf quaternion = motionStreams_[i].getLatestMotion().getQuaternion().slerp(
                     ratio, motionStreams_[i].getNextMotion().getQuaternion());
             frameMotions[i] = mmd::Motion(i, currentFrameNo_, shift, quaternion);
-        } else if (motionStreams_[i].getLatestMotion().getFrameNo() < currentFrameNo_ && motionStreams_[i].isLastMotion()) {
-            frameMotions[i] = motionStreams_[i].getLatestMotion();
-        } else {
-            cout << "error\n";
         }
     }
 
@@ -154,11 +154,9 @@ const PmxModel& ModelUpdater::getModel() const {
 }
 
 
-//void ModelUpdater::moveChildBones(vector<mmd::Bone> &bones, const int parentBoneIndex,
 void ModelUpdater::moveChildBones(const int parentBoneIndex,
-                              const vector<mmd::Motion> &frameMotions) {
+                                  const vector<mmd::Motion> &frameMotions) {
 
-    //vector<int> childBoneIndices = bones[parentBoneIndex].getChildBoneIndices();
     vector<int> childBoneIndices = model_.getBones()[parentBoneIndex].getChildBoneIndices();
     for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
         int childBoneIndex = childBoneIndices[i];
@@ -174,15 +172,10 @@ void ModelUpdater::moveChildBones(const int parentBoneIndex,
 
         // 移動後の回転 = 親の回転 * 回転
         // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
-        /*
-        bones[childBoneIndex].setTemporalQuaternion(
-                bones[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
-                */
         model_.setBoneTemporalQuaternion(childBoneIndex,
             model_.getBones()[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
 
         // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
-        //moveChildBones(bones, childBoneIndex, frameMotions);
         moveChildBones(childBoneIndex, frameMotions);
     }
 }
