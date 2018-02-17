@@ -1,7 +1,7 @@
 #ifndef MMD_PMX_FILE_READER_H
 #define MMD_PMX_FILE_READER_H
 
-#include <fstream>
+#include "FileReader.h"
 #include "PmxModel.h"
 
 namespace mmd {
@@ -52,8 +52,6 @@ namespace mmd {
         */
         PmxFileReader(const string &filename);
 
-        /*! @brief デストラクタ
-        */
         ~PmxFileReader();
 
         /*! @brief PMXモデルファイルの読み込み
@@ -65,14 +63,6 @@ namespace mmd {
         /*! @brief デフォルトコンストラクタの禁止
         */
         PmxFileReader();
-
-        /*! @brief コピーコンストラクタの禁止
-        */
-        PmxFileReader(const PmxFileReader &);
-
-        /*! @brief 代入演算子の禁止
-        */
-        PmxFileReader &operator=(const PmxFileReader &);
 
         /*! @brief ヘッダの読み込み
         * @param[out] model モデル
@@ -138,27 +128,20 @@ namespace mmd {
         */
         void searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices);
 
-        /*! @brief 可変サイズデータのファイル入力(unsigned, リトルエンディアン)
-        * @param[in] dataSize データバイト数
-        * @return データ
+        /*! @brief ファイル入力
+        * @param[in] size 入力バイト数
+        * @param[in] encodeType エンコードタイプ
+        * @return ファイルから入力した文字列
         */
-        int readVariableSizeUnsignedData(const int dataSize);
+        const string readFromUTF(const int size, const char encodeType);
 
-        /*! @brief 可変サイズデータのファイル入力(signed, リトルエンディアン)
-        * @param[in] dataSize データバイト数
-        * @return データ
+        /*! @brief ファイル入力クラス
         */
-        int readVariableSizeSignedData(const int dataSize);
-
-        /*! @brief ファイルストリーム
-        */
-        std::ifstream fileStream_;
+        FileReader fileReader_;
 
         /*! @brief PMXファイルヘッダ情報
         */
         PmxHeaderInfo pmxHeaderInfo_;
-
-        string folderName_;
     };
 }
 

@@ -25,14 +25,17 @@ const string trans(ifstream& fileStream, const int size, const bool needResize, 
     if (needResize) {
         str.resize(BUFSIZ - size_out);
     }
+
+    iconv_close(conv);
+
     return str;
 }
 
 
-const string mmd::readFromUTF(ifstream &fileStream, const int size, const char encodeType, const bool needResize)
+const string mmd::readFromUTF(ifstream &fileStream, const int size, const char encodeType)
 {
     if (encodeType == 0) {
-        return readFromUTF16(fileStream, size, needResize);
+        return readFromUTF16(fileStream, size);
     } else {
         return readFromUTF8(fileStream, size);
     }
@@ -48,13 +51,13 @@ const string mmd::readFromUTF8(ifstream &fileStream, const int size)
 }
 
 
-const string mmd::readFromUTF16(ifstream &fileStream, const int size, const bool needResize)
+const string mmd::readFromUTF16(ifstream &fileStream, const int size)
 {
-    return trans(fileStream, size, needResize, "UTF-16");
+    return trans(fileStream, size, true, "UTF-16");
 }
 
 
-const string mmd::readFromCP932(ifstream &fileStream, const int size, const bool needResize)
+const string mmd::readFromCP932(ifstream &fileStream, const int size)
 {
-    return trans(fileStream, size, needResize, "CP932");
+    return trans(fileStream, size, false, "CP932");
 }

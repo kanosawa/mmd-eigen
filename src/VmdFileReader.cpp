@@ -34,7 +34,8 @@ void VmdFileReader::readFile(vector<Motion>& motions) {
     const int BONE_NAME_LENGTH = 15;
     for (unsigned int i = 0; i < motionDataNum_; ++i) {
         // ボーン名
-        string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
+        //string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
+        string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH);
 
         // ボーンインデックスの算出
         int boneIndex = distance(boneNames_.begin(), find(boneNames_.begin(), boneNames_.end(), boneName));
@@ -81,7 +82,8 @@ bool VmdFileReader::readHeader() {
 
     // モデル名
     const int MODEL_NAME_LENGTH = 20;
-    string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH, false);
+    //string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH, false);
+    string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH);
 
     // モーションデータ数
     fileStream_.read(reinterpret_cast<char *>(&motionDataNum_), 4);
