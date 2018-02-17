@@ -21,9 +21,9 @@ namespace mmd {
             */
             int loopNum;
 
-            /*! @brief 制限角度
+            /*! @brief 単位角
             */
-            float limitAngle;
+            float unitAngle;
 
             /*! @brief リンクボーンインデックス
             */
@@ -102,6 +102,10 @@ namespace mmd {
         */
         bool IKFlag_;
 
+        /*! @brief IK
+        */
+        IK ik_;
+
         /*! @brief 三次元座標(temporal)
         */
         Eigen::Vector3f temporalPosition_;
@@ -109,10 +113,6 @@ namespace mmd {
         /*! @brief クォータニオン(temporal)
         */
         Eigen::Quaternionf temporalQuaternion_;
-
-        /*! @brief IK
-        */
-        IK ik_;
     };
 }
 

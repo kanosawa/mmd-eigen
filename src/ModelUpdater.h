@@ -40,11 +40,9 @@ namespace mmd {
         int searchSuperParentBone(const vector<mmd::Bone> &bones);
 
         /*! @brief 全ての親ボーンを探索
-         * @param[in] bones ボーン群
          * @param[in] parentBoneIndex 親ボーンインデックス
          * @param[in] frameMotions フレームモーション
         */
-        //void moveChildBones(vector<Bone> &bones, const int parentBoneIndex,
         void moveChildBones(const int parentBoneIndex,
                             const vector<Motion> &frameMotions);
 

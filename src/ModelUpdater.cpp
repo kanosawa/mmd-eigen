@@ -64,22 +64,58 @@ void ModelUpdater::update()
                     Eigen::Vector3f targetPos = model_.getBones()[targetIndex].getTemporalPosition();
                     Eigen::Vector3f linkPos = model_.getBones()[linkIndex].getTemporalPosition();
 
-                    Eigen::Vector3f targetVec = targetPos - linkPos;
-                    Eigen::Vector3f ikVec = ikPos - linkPos;
+                    if (ik.angleLimitFlags[l]) {
+                        if (i != 0) continue;
 
-                    targetVec.normalize();
-                    ikVec.normalize();
-                    float angle = acos(targetVec.dot(ikVec));
-                    Eigen::Vector3f cross = targetVec.cross(ikVec);
-                    cross.normalize();
-                    Eigen::AngleAxisf mat(angle, cross);
+                        Eigen::Vector3f targetVec = targetPos - linkPos;
+                        int baseIndex = model_.getBones()[b].getIK().linkIndices[l + 1];
+                        Eigen::Vector3f basePos = model_.getBones()[baseIndex].getTemporalPosition();
 
-                    frameMotions[linkIndex].setQuaternion(
-                            mat * frameMotions[linkIndex].getQuaternion());
+                        Eigen::Vector3f baseVec = linkPos - basePos;
+                        Eigen::Vector3f ikVec = ikPos - basePos;
 
+                        float cos_value = (ikVec.norm() * ikVec.norm() - baseVec.norm() * baseVec.norm() -
+                        targetVec.norm() * targetVec.norm()) / (2.0f * baseVec.norm() * targetVec.norm());
+                        if (cos_value < -1.0f) cos_value = -1.0f;
+                        if (cos_value > 1.0f) cos_value = 1.0f;
+                        float angle = acos(cos_value);
+
+                        if (angle < -0.01) {
+                            angle = 0;
+                        }
+
+                        Eigen::Vector3f axis(-1, 0, 0);
+                        Eigen::AngleAxisf mat(angle, axis);
+                        frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
+                    } else {
+                        Eigen::Vector3f ikPos_local = model_.getBones()[linkIndex].getTemporalQuaternion().inverse()
+                                                      * (ikPos - model_.getBones()[linkIndex].getTemporalPosition());
+                        Eigen::Vector3f targetPos_local = model_.getBones()[linkIndex].getTemporalQuaternion().inverse()
+                                                          * (targetPos - model_.getBones()[linkIndex].getTemporalPosition());
+                        Eigen::Vector3f ikVec = ikPos_local;
+                        Eigen::Vector3f targetVec = targetPos_local;
+
+                        targetVec.normalize();
+                        ikVec.normalize();
+                        float cos_value = targetVec.dot(ikVec);
+                        if (cos_value < -1.0f) cos_value = -1.0f;
+                        if (cos_value > 1.0f) cos_value = 1.0f;
+                        float angle = acos(cos_value);
+
+                        if (angle > ik.unitAngle / 180.0 * M_PI) {
+                            angle = ik.unitAngle / 180.0 * M_PI;
+                        }
+
+                        Eigen::Vector3f cross = targetVec.cross(ikVec);
+                        cross.normalize();
+                        Eigen::AngleAxisf mat(angle, cross);
+                        frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
+                    }
                     model_.setBoneTemporalPosition(superParentIndex_,
-                                                   model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
-                    model_.setBoneTemporalQuaternion(superParentIndex_, frameMotions[superParentIndex_].getQuaternion());
+                                                   model_.getBones()[superParentIndex_].getInitialPosition() +
+                                                   frameMotions[superParentIndex_].getShift());
+                    model_.setBoneTemporalQuaternion(superParentIndex_,
+                                                     frameMotions[superParentIndex_].getQuaternion());
                     moveChildBones(superParentIndex_, frameMotions);
                 }
             }
