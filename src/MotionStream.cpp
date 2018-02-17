@@ -27,7 +27,7 @@ const Motion& MotionStream::getNextMotion() const {
 }
 
 
-bool MotionStream::isLastMotion() {
+const bool MotionStream::isLastMotion() const  {
     if (pointer_ != motions_.size() - 1) {
         return false;
     }

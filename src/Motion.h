@@ -8,9 +8,9 @@ namespace mmd {
     */
     class Motion {
     public:
-        /*! @brief コンストラクタ
-        */
+
         Motion();
+        ~Motion();
 
         /*! @brief コンストラクタ
          * @param[in] boneIndex ボーンインデックス
@@ -19,8 +19,6 @@ namespace mmd {
          * @param[in] quaternion クォータニオン
         */
         Motion(const int boneIndex, const int frameNo, const Eigen::Vector3f& shift, const Eigen::Quaternionf& quaternion);
-
-        ~Motion();
 
         void setQuaternion(const Eigen::Quaternionf& quaternion);
 

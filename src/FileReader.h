@@ -18,7 +18,7 @@ namespace mmd {
 
         ~FileReader();
 
-        const string& getFolderName();
+        const string& getFolderName() const;
 
         /*! @brief ファイル入力
         * @param[out] data データ
@@ -36,13 +36,13 @@ namespace mmd {
         * @param[in] size 入力バイト数
         * @return ファイルから入力した文字列
         */
-        const string readFromUTF16(const int size);
+        const string readFromUTF16(const int size, const bool needResize = true);
 
         /*! @brief CP932ファイル入力
         * @param[in] size 入力バイト数
         * @return ファイルから入力した文字列
         */
-        const string readFromCP932(const int size);
+        const string readFromCP932(const int size, const bool needResize = true);
 
         /*! @brief 可変サイズデータのファイル入力(unsigned, リトルエンディアン)
         * @param[in] dataSize データバイト数

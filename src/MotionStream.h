@@ -12,6 +12,7 @@ namespace mmd {
     class MotionStream {
     public:
         /*! @brief コンストラクタ
+         * @param[in] motions モーション
         */
         MotionStream(const vector<Motion> &motions);
 
@@ -36,10 +37,19 @@ namespace mmd {
         /*! @brief 最後のモーションか否か
         * @return 最後のモーションならtrue
         */
-        bool isLastMotion();
+        const bool isLastMotion() const;
 
     private:
+        /*! @brief デフォルトコンストラクタの禁止
+        */
+        MotionStream();
+
+        /*! @brief モーション
+        */
         vector<Motion> motions_;
+
+        /*! @brief ポインタ
+        */
         int pointer_;
     };
 }

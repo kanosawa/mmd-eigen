@@ -11,6 +11,7 @@ find_package(GLUT REQUIRED)
 add_executable(mmd-eigen src/Main.cpp src/PmxFileReader.cpp src/VmdFileReader.cpp
         src/FileReader.cpp src/Vertex.cpp src/PmxModel.cpp
         src/Material.cpp src/Bone.cpp src/Motion.cpp src/Renderer.cpp
-        src/MotionStream.cpp src/ModelUpdater.cpp src/Surface.cpp)
+        src/MotionStream.cpp src/ModelUpdater.cpp src/Surface.cpp
+        src/MotionStreamGenerator.cpp)
 
 target_link_libraries(mmd-eigen ${OpenCV_LIBS} ${OPENGL_LIBRARY} ${GLUT_LIBRARY})

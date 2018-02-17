@@ -24,7 +24,7 @@ FileReader::~FileReader() {
 }
 
 
-const string& FileReader::getFolderName() {
+const string& FileReader::getFolderName() const {
     return folderName_;
 }
 
@@ -43,15 +43,15 @@ const string FileReader::readFromUTF8(const int size)
 }
 
 
-const string FileReader::readFromUTF16(const int size)
+const string FileReader::readFromUTF16(const int size, const bool needResize)
 {
-    return trans(size, "UTF-16", true);
+    return trans(size, "UTF-16", needResize);
 }
 
 
-const string FileReader::readFromCP932(const int size)
+const string FileReader::readFromCP932(const int size, const bool needResize)
 {
-    return trans(size, "CP932", false);
+    return trans(size, "CP932", needResize);
 }
 
 
