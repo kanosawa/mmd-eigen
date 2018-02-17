@@ -9,7 +9,11 @@ ModelUpdater::ModelUpdater() {
 
 
 ModelUpdater::~ModelUpdater() {
+}
 
+
+const PmxModel& ModelUpdater::getModel() const {
+    return model_;
 }
 
 
@@ -18,6 +22,7 @@ void ModelUpdater::update()
     ++currentFrameNo_;
     cout << currentFrameNo_ << endl;
 
+    // 現フレームのモーションデータを補間処理によって生成
     vector<mmd::Motion> frameMotions(model_.getBones().size());
     for (unsigned int i = 0; i < frameMotions.size(); ++i) {
         // ちょうどそのフレームのモーションデータがある場合は、それをそのまま使う
@@ -42,80 +47,73 @@ void ModelUpdater::update()
         }
     }
 
-    // Bone
+    // ボーン更新
     model_.setBoneTemporalPosition(superParentIndex_,
                                    model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
     model_.setBoneTemporalQuaternion(superParentIndex_, frameMotions[superParentIndex_].getQuaternion());
     moveChildBones(superParentIndex_, frameMotions);
 
     // IK
-    for (unsigned int b = 0; b < model_.getBones().size(); ++b) {
-        if (model_.getBones()[b].getIKFlag()) {
+    for (auto bone = model_.getBones().begin(); bone != model_.getBones().end(); ++bone) {
+        if (bone->getIKFlag()) {
 
-            int targetIndex = model_.getBones()[b].getIK().targetIndex;
-            for (int i = 0; i < model_.getBones()[b].getIK().loopNum; ++i) {
-                for (int l = 0; l < model_.getBones()[b].getIK().linkIndices.size(); ++l) {
+            Bone::IK ik = bone->getIK();
+            for (int i = 0; i < ik.loopNum; ++i) {
+                for (int l = 0; l < ik.linkIndices.size(); ++l) {
 
-                    Bone::IK ik = model_.getBones()[b].getIK();
+                    int linkIndex = ik.linkIndices[l];
 
-                    int linkIndex = model_.getBones()[b].getIK().linkIndices[l];
-
-                    Eigen::Vector3f ikPos = model_.getBones()[b].getTemporalPosition();
-                    Eigen::Vector3f targetPos = model_.getBones()[targetIndex].getTemporalPosition();
+                    Eigen::Vector3f ikPos = bone->getTemporalPosition();
+                    Eigen::Vector3f targetPos = model_.getBones()[ik.targetIndex].getTemporalPosition();
                     Eigen::Vector3f linkPos = model_.getBones()[linkIndex].getTemporalPosition();
 
                     if (ik.angleLimitFlags[l]) {
                         if (i != 0) continue;
 
                         Eigen::Vector3f targetVec = targetPos - linkPos;
-                        int baseIndex = model_.getBones()[b].getIK().linkIndices[l + 1];
+                        int baseIndex = *(ik.linkIndices.end() - 1);
                         Eigen::Vector3f basePos = model_.getBones()[baseIndex].getTemporalPosition();
-
                         Eigen::Vector3f baseVec = linkPos - basePos;
                         Eigen::Vector3f ikVec = ikPos - basePos;
 
+                        // 角度算出
                         float cos_value = (ikVec.norm() * ikVec.norm() - baseVec.norm() * baseVec.norm() -
-                        targetVec.norm() * targetVec.norm()) / (2.0f * baseVec.norm() * targetVec.norm());
+                                           targetVec.norm() * targetVec.norm()) / (2.0f * baseVec.norm() * targetVec.norm());
                         if (cos_value < -1.0f) cos_value = -1.0f;
                         if (cos_value > 1.0f) cos_value = 1.0f;
                         float angle = acos(cos_value);
 
-                        if (angle < -0.01) {
-                            angle = 0;
-                        }
-
+                        // 回転
                         Eigen::Vector3f axis(-1, 0, 0);
                         Eigen::AngleAxisf mat(angle, axis);
                         frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
                     } else {
-                        Eigen::Vector3f ikPos_local = model_.getBones()[linkIndex].getTemporalQuaternion().inverse()
-                                                      * (ikPos - model_.getBones()[linkIndex].getTemporalPosition());
-                        Eigen::Vector3f targetPos_local = model_.getBones()[linkIndex].getTemporalQuaternion().inverse()
-                                                          * (targetPos - model_.getBones()[linkIndex].getTemporalPosition());
-                        Eigen::Vector3f ikVec = ikPos_local;
-                        Eigen::Vector3f targetVec = targetPos_local;
-
+                        // リンクボーンの位置姿勢を座標系としたベクトルを算出
+                        // ボーンの回転は親ボーンからの相対的なものなので、リンクボーンを基準にしないといけない
+                        Eigen::Vector3f ikVec = model_.getBones()[linkIndex].getTemporalQuaternion().inverse()
+                                                      * (ikPos - linkPos);
+                        Eigen::Vector3f targetVec = model_.getBones()[linkIndex].getTemporalQuaternion().inverse()
+                                                          * (targetPos - linkPos);
                         targetVec.normalize();
                         ikVec.normalize();
+
+                        // 角度算出
                         float cos_value = targetVec.dot(ikVec);
                         if (cos_value < -1.0f) cos_value = -1.0f;
                         if (cos_value > 1.0f) cos_value = 1.0f;
                         float angle = acos(cos_value);
-
-                        if (angle > ik.unitAngle / 180.0 * M_PI) {
-                            angle = ik.unitAngle / 180.0 * M_PI;
+                        if (angle > ik.unitAngle) {
+                            angle = ik.unitAngle;
                         }
 
+                        // 回転
                         Eigen::Vector3f cross = targetVec.cross(ikVec);
                         cross.normalize();
                         Eigen::AngleAxisf mat(angle, cross);
                         frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
                     }
-                    model_.setBoneTemporalPosition(superParentIndex_,
-                                                   model_.getBones()[superParentIndex_].getInitialPosition() +
-                                                   frameMotions[superParentIndex_].getShift());
-                    model_.setBoneTemporalQuaternion(superParentIndex_,
-                                                     frameMotions[superParentIndex_].getQuaternion());
+
+                    // ボーン更新
                     moveChildBones(superParentIndex_, frameMotions);
                 }
             }
@@ -129,13 +127,11 @@ void ModelUpdater::update()
         Eigen::Vector3f pos(0, 0, 0);
         for (unsigned int b = 0; b < refBoneIndices.size(); ++b) {
 
-            int boneIndex = refBoneIndices[b];
-
+            auto bone = model_.getBones()[refBoneIndices[b]];
             // 移動後頂点の位置 = 移動後ボーンの回転 * (移動前頂点の位置 - 移動前ボーンの位置) + 移動後ボーンの位置
-            pos += (model_.getBones()[boneIndex].getTemporalQuaternion() *
-                    (model_.getVertices()[i].getInitialPosition() - model_.getBones()[boneIndex].getInitialPosition()) +
-                    model_.getBones()[boneIndex].getTemporalPosition()) *
-                   refBoneWeightList[b];
+            pos += (bone.getTemporalQuaternion() *
+                    (model_.getVertices()[i].getInitialPosition() - bone.getInitialPosition()) +
+                    bone.getTemporalPosition()) * refBoneWeightList[b];
         }
         model_.setVertexTemporalPosition(i, pos);
     }
@@ -149,38 +145,6 @@ void ModelUpdater::setParam(const PmxModel& model, const vector<MotionStream>& m
 }
 
 
-const PmxModel& ModelUpdater::getModel() const {
-    return model_;
-}
-
-
-void ModelUpdater::moveChildBones(const int parentBoneIndex,
-                                  const vector<mmd::Motion> &frameMotions) {
-
-    vector<int> childBoneIndices = model_.getBones()[parentBoneIndex].getChildBoneIndices();
-    for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
-        int childBoneIndex = childBoneIndices[i];
-
-        // 移動後の位置 = 親の回転 * (元の位置 - 親の元の位置 + シフト) + 親の移動後の位置
-        // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
-        // シフトしてから回転する
-        // 親の移動後の位置を原点として回転から、ワールド座標に変換（親の移動後の位置分だけシフト）
-        model_.setBoneTemporalPosition(childBoneIndex, model_.getBones()[parentBoneIndex].getTemporalQuaternion() *
-                (model_.getBones()[childBoneIndex].getInitialPosition() - model_.getBones()[parentBoneIndex].getInitialPosition() +
-                frameMotions[childBoneIndex].getShift()) +
-                model_.getBones()[parentBoneIndex].getTemporalPosition());
-
-        // 移動後の回転 = 親の回転 * 回転
-        // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
-        model_.setBoneTemporalQuaternion(childBoneIndex,
-            model_.getBones()[parentBoneIndex].getTemporalQuaternion() * frameMotions[childBoneIndex].getQuaternion());
-
-        // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
-        moveChildBones(childBoneIndex, frameMotions);
-    }
-}
-
-
 int ModelUpdater::searchSuperParentBone(const vector<mmd::Bone> &bones) {
     for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
         if (bones[boneIndex].getParentBoneIndex() == -1) {
@@ -189,3 +153,32 @@ int ModelUpdater::searchSuperParentBone(const vector<mmd::Bone> &bones) {
     }
     return -1;
 };
+
+
+void ModelUpdater::moveChildBones(const int parentBoneIndex,
+                                  const vector<mmd::Motion> &frameMotions) {
+    auto parentBone = model_.getBones()[parentBoneIndex];
+
+    vector<int> childBoneIndices = parentBone.getChildBoneIndices();
+    for (unsigned int i = 0; i < childBoneIndices.size(); ++i) {
+        int childBoneIndex = childBoneIndices[i];
+        auto childBone = model_.getBones()[childBoneIndex];
+
+        // 移動後の位置 = 親の回転 * (元の位置 - 親の元の位置 + シフト) + 親の移動後の位置
+        // 自分自身の回転では位置は変わらない。親の回転によって自分の位置が変わる
+        model_.setBoneTemporalPosition(childBoneIndex, parentBone.getTemporalQuaternion() *
+                                                       (childBone.getInitialPosition() -
+                                                        parentBone.getInitialPosition() +
+                                                        frameMotions[childBoneIndex].getShift()) +
+                                                       parentBone.getTemporalPosition());
+
+        // 移動後の回転 = 親の回転 * 回転
+        // 親が回転すると、その子供は全て回転する(VMDに書かれているのは親との相対的な回転）
+        model_.setBoneTemporalQuaternion(childBoneIndex,
+                                         parentBone.getTemporalQuaternion() *
+                                         frameMotions[childBoneIndex].getQuaternion());
+
+        // 子ボーンを新たな親ボーンとして再帰的に全ボーンの位置姿勢を算出する
+        moveChildBones(childBoneIndex, frameMotions);
+    }
+}
