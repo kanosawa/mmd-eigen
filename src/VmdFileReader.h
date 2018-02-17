@@ -5,7 +5,7 @@
 #include <fstream>
 #include "Bone.h"
 #include "Motion.h"
-#include "MultiCharaCodeFileReader.h"
+#include "FileReader.h"
 
 namespace mmd {
     /*! @brief VMDファイル読み込みクラス
@@ -23,7 +23,7 @@ namespace mmd {
         ~VmdFileReader();
 
         /*! @brief VMDファイルの読み込み
-        * @return VMDデータストリーム
+        * @param[out] motions VMDデータストリーム
         */
         void readFile(vector<Motion>& motions);
 
@@ -32,23 +32,15 @@ namespace mmd {
         */
         VmdFileReader();
 
-        /*! @brief コピーコンストラクタの禁止
-        */
-        VmdFileReader(const VmdFileReader &);
-
-        /*! @brief 代入演算子の禁止
-        */
-        VmdFileReader &operator=(const VmdFileReader &);
-
         /*! @brief ヘッダの読み込み
         * @param[out] vmdDataStream VMDデータストリーム
         * @return 成否
         */
         bool readHeader();
 
-        /*! @brief ファイルストリーム
+        /*! @brief ファイル入力クラス
         */
-        ifstream fileStream_;
+        FileReader fileReader_;
 
         /*! @brief ボーン名リスト
         */

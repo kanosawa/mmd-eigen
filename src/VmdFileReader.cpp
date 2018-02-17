@@ -5,13 +5,10 @@
 using namespace mmd;
 using namespace std;
 
-VmdFileReader::VmdFileReader(const string &filename, const vector<Bone> &initialBones) {
-    fileStream_.open(filename.c_str(), ios::binary);
-    if (!fileStream_) {
-        cout << "File Open Error in VmdFileReader()\n";
-        exit(0);
-    }
+VmdFileReader::VmdFileReader(const string &filename, const vector<Bone> &initialBones)
+        : fileReader_(filename){
 
+    // ボーン名の登録
     for (unsigned int i = 0; i < initialBones.size(); ++i) {
         boneNames_.push_back(initialBones[i].getBoneName());
     }
@@ -34,28 +31,27 @@ void VmdFileReader::readFile(vector<Motion>& motions) {
     const int BONE_NAME_LENGTH = 15;
     for (unsigned int i = 0; i < motionDataNum_; ++i) {
         // ボーン名
-        //string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH, false);
-        string boneName = readFromCP932(fileStream_, BONE_NAME_LENGTH);
+        string boneName = fileReader_.readFromCP932(BONE_NAME_LENGTH);
 
         // ボーンインデックスの算出
         int boneIndex = distance(boneNames_.begin(), find(boneNames_.begin(), boneNames_.end(), boneName));
 
         // フレーム番号
         unsigned int frameNo;
-        fileStream_.read(reinterpret_cast<char *>(&frameNo), 4);
+        fileReader_.read(reinterpret_cast<char *>(&frameNo), 4);
 
         // ボーンのシフト
         Eigen::Vector3f shift;
-        fileStream_.read(reinterpret_cast<char *>(&shift), 12);
+        fileReader_.read(reinterpret_cast<char *>(&shift), 12);
 
         // ボーンのクォータニオン
         Eigen::Vector4f quatTmp;
-        fileStream_.read(reinterpret_cast<char *>(&quatTmp), 16);
+        fileReader_.read(reinterpret_cast<char *>(&quatTmp), 16);
         Eigen::Quaternionf quaternion(quatTmp[3], quatTmp[0], quatTmp[1], quatTmp[2]);
 
         // 補間パラメータ
         char param[64];
-        fileStream_.read(reinterpret_cast<char *>(&param), 64);
+        fileReader_.read(reinterpret_cast<char *>(&param), 64);
 
         // VMDデータストリームへの挿入
         if (boneIndex != static_cast<int>(boneNames_.size())) {
@@ -68,26 +64,18 @@ void VmdFileReader::readFile(vector<Motion>& motions) {
 bool VmdFileReader::readHeader() {
     // "Vocaloid Motion Data 0002\n"の確認
     const int VMD_LENGTH = 30;
-    unsigned char charVmd[VMD_LENGTH];
-    fileStream_.read(reinterpret_cast<char *>(charVmd), VMD_LENGTH);
-
-    if ((charVmd[0] != 0x56) || (charVmd[1] != 0x6f) || (charVmd[2] != 0x63) || (charVmd[3] != 0x61) ||
-        (charVmd[4] != 0x6c) || (charVmd[5] != 0x6f) || (charVmd[6] != 0x69) || (charVmd[7] != 0x64) ||
-        (charVmd[8] != 0x20) || (charVmd[9] != 0x4d) || (charVmd[10] != 0x6f) || (charVmd[11] != 0x74) ||
-        (charVmd[12] != 0x69) || (charVmd[13] != 0x6f) || (charVmd[14] != 0x6e) || (charVmd[15] != 0x20) ||
-        (charVmd[16] != 0x44) || (charVmd[17] != 0x61) || (charVmd[18] != 0x74) || (charVmd[19] != 0x61) ||
-        (charVmd[20] != 0x20) || (charVmd[21] != 0x30) || (charVmd[22] != 0x30) || (charVmd[23] != 0x30) ||
-        (charVmd[24] != 0x32))
+    char charVmd[VMD_LENGTH];
+    fileReader_.read(reinterpret_cast<char *>(charVmd), VMD_LENGTH);
+    if (strncmp(charVmd, "Vocaloid Motion Data 0002\n", 25) != 0) {
         return false;
+    }
 
     // モデル名
     const int MODEL_NAME_LENGTH = 20;
-    //string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH, false);
-    string modelName = readFromCP932(fileStream_, MODEL_NAME_LENGTH);
+    string modelName = fileReader_.readFromCP932(MODEL_NAME_LENGTH);
 
     // モーションデータ数
-    fileStream_.read(reinterpret_cast<char *>(&motionDataNum_), 4);
-    cout << "frameDataNum = " << motionDataNum_ << endl;
+    fileReader_.read(reinterpret_cast<char *>(&motionDataNum_), 4);
 
     return true;
 }
