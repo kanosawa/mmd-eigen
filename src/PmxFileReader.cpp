@@ -349,16 +349,18 @@ bool PmxFileReader::readBones(PmxModel &model) {
         // ボーンフラグ分解
         short destinationMask = 0x0001;
         short IKMask = 0x0020;
-        short rotationAddMask = 0x0100;
-        short moveAddMask = 0x0200;
+        short addRotMask = 0x0100;
+        short addShiftMask = 0x0200;
         short axisFixMask = 0x0400;
         short localAxisMask = 0x0800;
         short extParentChangeMask = 0x2000;
         bool destinationFlag = ((boneFlag & destinationMask) != 0);
         bool IKFlag = ((boneFlag & IKMask) != 0);
         bone.setIKFlag(IKFlag);
-        bool rotationAddFlag = ((boneFlag & rotationAddMask) != 0);
-        bool moveAddFlag = ((boneFlag & moveAddMask) != 0);
+        bool assignRotFlag = ((boneFlag & addRotMask) != 0);
+        bone.setAssignRotFlag(assignRotFlag);
+        bool assignShiftFlag = ((boneFlag & addShiftMask) != 0);
+        bone.setAssignShiftFlag(assignShiftFlag);
         bool axisFixFlag = ((boneFlag & axisFixMask) != 0);
         bool localAxisFlag = ((boneFlag & localAxisMask) != 0);
         bool extParentChageFlag = ((boneFlag & extParentChangeMask) != 0);
@@ -373,8 +375,12 @@ bool PmxFileReader::readBones(PmxModel &model) {
             bone.setOffset(offset);
         }
 
-        if (rotationAddFlag || moveAddFlag) {
-            fileReader_.read(reinterpret_cast<char *>(&tmp), 4 + pmxHeaderInfo_.boneIndexSize);
+        if (assignRotFlag || assignShiftFlag) {
+            int assignParentIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
+            float assignRatio;
+            fileReader_.read(reinterpret_cast<char *>(&assignRatio), 4);
+            bone.setAssignParentIndex(assignParentIndex);
+            bone.setAssignRatio(assignRatio);
         }
 
         if (axisFixFlag) {

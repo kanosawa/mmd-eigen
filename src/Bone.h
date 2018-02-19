@@ -48,6 +48,10 @@ namespace mmd {
         void setOffset(const Eigen::Vector3f &offset);
         void setDestinationBoneIndex(const int destinationBoneIndex);
         void setIKFlag(const bool IKFlag);
+        void setAssignRotFlag(const bool assignRotFlag);
+        void setAssignShiftFlag(const bool assignShiftFlag);
+        void setAssignParentIndex(const int assignParentIndex);
+        void setAssignRatio(const float assignRatio);
         void setIK(const IK &ik);
         void setTemporalPosition(const Eigen::Vector3f &temporalPosition);
         void setTemporalQuaternion(const Eigen::Quaternionf &temporalQuaternion);
@@ -60,6 +64,10 @@ namespace mmd {
         const int getDestinationBoneIndex() const;
         const vector<int> &getChildBoneIndices() const;
         const bool getIKFlag() const;
+        const bool getAssignRotFlag() const;
+        const bool getAssignShiftFlag() const;
+        const int getAssignParentIndex() const;
+        const float getAssignRatio() const;
         const IK &getIK() const;
         const Eigen::Vector3f &getTemporalPosition() const;
         const Eigen::Quaternionf &getTemporalQuaternion() const;
@@ -101,6 +109,22 @@ namespace mmd {
         /*! @brief IKFlag
         */
         bool IKFlag_;
+
+        /*! @brief 回転付与フラグ
+        */
+        bool assignRotFlag_;
+
+        /*! @brief 移動付与フラグ
+        */
+        bool assignShiftFlag_;
+
+        /*! @brief 付与親インデックス
+        */
+        int assignParentIndex_;
+
+        /*! @brief 付与率
+        */
+        float assignRatio_;
 
         /*! @brief IK
         */

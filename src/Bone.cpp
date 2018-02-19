@@ -91,6 +91,46 @@ const bool Bone::getIKFlag() const {
 }
 
 
+void Bone::setAssignRotFlag(const bool assignRotFlag) {
+    assignRotFlag_ = assignRotFlag;
+}
+
+
+void Bone::setAssignShiftFlag(const bool assignShiftFlag) {
+    assignShiftFlag_ = assignShiftFlag;
+}
+
+
+void Bone::setAssignParentIndex(const int assignParentIndex) {
+    assignParentIndex_ = assignParentIndex;
+}
+
+
+void Bone::setAssignRatio(const float assignRatio) {
+    assignRatio_ = assignRatio;
+}
+
+
+const bool Bone::getAssignRotFlag() const {
+    return assignRotFlag_;
+}
+
+
+const bool Bone::getAssignShiftFlag() const {
+    return assignShiftFlag_;
+}
+
+
+const int Bone::getAssignParentIndex() const {
+    return assignParentIndex_;
+}
+
+
+const float Bone::getAssignRatio() const {
+    return assignRatio_;
+}
+
+
 const Bone::IK &Bone::getIK() const {
     return ik_;
 }

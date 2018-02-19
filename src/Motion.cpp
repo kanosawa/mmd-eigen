@@ -16,6 +16,11 @@ Motion::~Motion() {
 }
 
 
+void Motion::setShift(const Eigen::Vector3f& shift) {
+    shift_ = shift;
+}
+
+
 void Motion::setQuaternion(const Eigen::Quaternionf& quaternion) {
     quaternion_ = quaternion;
 }

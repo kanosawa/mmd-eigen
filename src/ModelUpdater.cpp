@@ -47,6 +47,29 @@ void ModelUpdater::update()
         }
     }
 
+
+    // 付与親
+    for (int i = 0; i < model_.getBones().size(); ++i) {
+        Bone bone = model_.getBones()[i];
+        if (bone.getAssignRotFlag()) {
+            if (bone.getAssignRatio() >= 0) {
+                frameMotions[i].setQuaternion(frameMotions[i].getQuaternion().slerp(
+                        bone.getAssignRatio(), frameMotions[bone.getAssignParentIndex()].getQuaternion() *
+                                frameMotions[i].getQuaternion()));
+            } else {
+                frameMotions[i].setQuaternion(frameMotions[i].getQuaternion().slerp(
+                        -bone.getAssignRatio(), frameMotions[bone.getAssignParentIndex()].getQuaternion().inverse() *
+                                frameMotions[i].getQuaternion()));
+            }
+        }
+        if (bone.getAssignShiftFlag()) {
+            frameMotions[i].setShift(frameMotions[i].getShift() +
+                                     frameMotions[bone.getAssignParentIndex()].getShift() *
+                                     bone.getAssignRatio());
+        }
+    }
+
+
     // ボーン更新
     model_.setBoneTemporalPosition(superParentIndex_,
                                    model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
@@ -58,7 +81,10 @@ void ModelUpdater::update()
         if (bone->getIKFlag()) {
 
             Bone::IK ik = bone->getIK();
-            for (int i = 0; i < ik.loopNum; ++i) {
+            //for (int i = 0; i < ik.loopNum; ++i) {
+            int loopNum = 2;
+            if (ik.loopNum < loopNum) loopNum = ik.loopNum;
+            for (int i = 0; i < loopNum; ++i) {
                 for (int l = 0; l < ik.linkIndices.size(); ++l) {
 
                     int linkIndex = ik.linkIndices[l];
@@ -66,6 +92,8 @@ void ModelUpdater::update()
                     Eigen::Vector3f ikPos = bone->getTemporalPosition();
                     Eigen::Vector3f targetPos = model_.getBones()[ik.targetIndex].getTemporalPosition();
                     Eigen::Vector3f linkPos = model_.getBones()[linkIndex].getTemporalPosition();
+
+                    Eigen::AngleAxisf mat;
 
                     if (ik.angleLimitFlags[l]) {
                         if (i != 0) continue;
@@ -83,9 +111,16 @@ void ModelUpdater::update()
                         if (cos_value > 1.0f) cos_value = 1.0f;
                         float angle = acos(cos_value);
 
+                        if (angle < 0) angle = 0;
+
+                        if (angle > ik.unitAngle) {
+                            angle = ik.unitAngle;
+                        }
+
                         // 回転
                         Eigen::Vector3f axis(-1, 0, 0);
-                        Eigen::AngleAxisf mat(angle, axis);
+                        //Eigen::AngleAxisf mat(angle, axis);
+                        mat = Eigen::AngleAxisf(angle, axis);
                         frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
                     } else {
                         // リンクボーンの位置姿勢を座標系としたベクトルを算出
@@ -102,6 +137,8 @@ void ModelUpdater::update()
                         if (cos_value < -1.0f) cos_value = -1.0f;
                         if (cos_value > 1.0f) cos_value = 1.0f;
                         float angle = acos(cos_value);
+
+                        if (angle < 0) angle = 0;
                         if (angle > ik.unitAngle) {
                             angle = ik.unitAngle;
                         }
@@ -109,8 +146,23 @@ void ModelUpdater::update()
                         // 回転
                         Eigen::Vector3f cross = targetVec.cross(ikVec);
                         cross.normalize();
-                        Eigen::AngleAxisf mat(angle, cross);
+                        //Eigen::AngleAxisf mat(angle, cross);
+                        mat = Eigen::AngleAxisf(angle, cross);
                         frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
+                    }
+
+                    // 付与
+                    for (int i = 0; i < model_.getBones().size(); ++i) {
+                        Bone bone = model_.getBones()[i];
+                        if (bone.getAssignParentIndex() == linkIndex && bone.getAssignRotFlag()) {
+                            if (bone.getAssignRatio() >= 0) {
+                                frameMotions[i].setQuaternion(frameMotions[i].getQuaternion().slerp(
+                                        bone.getAssignRatio(), mat * frameMotions[i].getQuaternion()));
+                            } else {
+                                frameMotions[i].setQuaternion(frameMotions[i].getQuaternion().slerp(
+                                     -bone.getAssignRatio(), mat.inverse() * frameMotions[i].getQuaternion()));
+                            }
+                        }
                     }
 
                     // ボーン更新

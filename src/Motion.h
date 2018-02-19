@@ -20,6 +20,7 @@ namespace mmd {
         */
         Motion(const int boneIndex, const int frameNo, const Eigen::Vector3f& shift, const Eigen::Quaternionf& quaternion);
 
+        void setShift(const Eigen::Vector3f& shift);
         void setQuaternion(const Eigen::Quaternionf& quaternion);
 
         const int getBoneIndex() const;

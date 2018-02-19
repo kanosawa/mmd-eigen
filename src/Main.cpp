@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     // PMXファイルの入力
-    mmd::PmxFileReader pmxFileReader("/home/kanosawa/src/mmd-eigen/data/maya/maya.pmx");
+    mmd::PmxFileReader pmxFileReader("/home/kanosawa/src/mmd-eigen/data/totoki/totoki.pmx");
     mmd::PmxModel model;
     pmxFileReader.readFile(model);
 
