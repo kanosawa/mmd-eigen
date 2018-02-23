@@ -9,7 +9,7 @@ using namespace std;
 int main(int argc, char *argv[]) {
 
     if (argc < 3) {
-        cout << "usage : exe_filename model_filename(fullpath) vmd_filename(fullpath)\n";
+        cout << "usage : mmd-eigen <model_filename(fullpath)> <vmd_filename(fullpath)>\n";
         exit(0);
     }
 

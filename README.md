@@ -9,4 +9,4 @@ linux
 
 ## Usage
 
-exe_filename model_filename(fullpath) vmd_filename(fullpath)
+mmd-eigen <model_filename(fullpath)> <vmd_filename(fullpath)>
