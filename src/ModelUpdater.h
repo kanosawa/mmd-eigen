@@ -28,9 +28,8 @@ namespace mmd {
     private:
         /*! @brief 全ての親ボーンを探索
          * @param[in] bones ボーン群
-         * @return 全ての親ボーンのインデックス
         */
-        int searchSuperParentBone(const vector<mmd::Bone> &bones);
+        void searchSuperParentBone(const vector<mmd::Bone> &bones);
 
         /*! @brief 全ての親ボーンを探索
          * @param[in] parentBoneIndex 親ボーンインデックス
@@ -45,7 +44,7 @@ namespace mmd {
 
         /*! @brief 全ての親ボーンのインデックス
         */
-        int superParentIndex_;
+        vector<unsigned int> superParentIndices_;
 
         /*! @brief モデル
         */

@@ -72,7 +72,7 @@ namespace mmd {
         * @param[out] model モデル
         * @param[in] parentBoneIndices 親ボーンインデックス
         */
-        void searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices);
+        void searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices);
 
         /*! @brief ファイル入力クラス
         */

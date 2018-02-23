@@ -69,10 +69,13 @@ void ModelUpdater::update()
     }
 
     // ボーン更新
-    model_.setBoneTemporalPosition(superParentIndex_,
-                                   model_.getBones()[superParentIndex_].getInitialPosition() + frameMotions[superParentIndex_].getShift());
-    model_.setBoneTemporalQuaternion(superParentIndex_, frameMotions[superParentIndex_].getQuaternion());
-    moveChildBones(superParentIndex_, frameMotions);
+    for (int i = 0; i < superParentIndices_.size(); ++i) {
+        model_.setBoneTemporalPosition(superParentIndices_[i],
+                                       model_.getBones()[superParentIndices_[i]].getInitialPosition() +
+                                       frameMotions[superParentIndices_[i]].getShift());
+        model_.setBoneTemporalQuaternion(superParentIndices_[i], frameMotions[superParentIndices_[i]].getQuaternion());
+        moveChildBones(superParentIndices_[i], frameMotions);
+    }
 
     // IK
     for (auto bone = model_.getBones().begin(); bone != model_.getBones().end(); ++bone) {
@@ -117,7 +120,6 @@ void ModelUpdater::update()
 
                         // 回転
                         Eigen::Vector3f axis(-1, 0, 0);
-                        //Eigen::AngleAxisf mat(angle, axis);
                         mat = Eigen::AngleAxisf(angle, axis);
                         frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
                     } else {
@@ -144,7 +146,6 @@ void ModelUpdater::update()
                         // 回転
                         Eigen::Vector3f cross = targetVec.cross(ikVec);
                         cross.normalize();
-                        //Eigen::AngleAxisf mat(angle, cross);
                         mat = Eigen::AngleAxisf(angle, cross);
                         frameMotions[linkIndex].setQuaternion(mat * frameMotions[linkIndex].getQuaternion());
                     }
@@ -164,7 +165,9 @@ void ModelUpdater::update()
                     }
 
                     // ボーン更新
-                    moveChildBones(superParentIndex_, frameMotions);
+                    for (int s = 0; s < superParentIndices_.size(); ++s) {
+                        moveChildBones(superParentIndices_[s], frameMotions);
+                    }
                 }
             }
         }
@@ -192,17 +195,17 @@ void ModelUpdater::update()
 void ModelUpdater::setParam(const PmxModel& model, const vector<MotionStream>& motionStreams) {
     model_ = model;
     motionStreams_ = motionStreams;
-    superParentIndex_ = searchSuperParentBone(model_.getBones());
+    searchSuperParentBone(model_.getBones());
 }
 
 
-int ModelUpdater::searchSuperParentBone(const vector<mmd::Bone> &bones) {
+void ModelUpdater::searchSuperParentBone(const vector<mmd::Bone> &bones) {
+    superParentIndices_.resize(0);
     for (unsigned int boneIndex = 0; boneIndex < bones.size(); ++boneIndex) {
         if (bones[boneIndex].getParentBoneIndex() == -1) {
-            return boneIndex;
+            superParentIndices_.push_back(boneIndex);
         }
     }
-    return -1;
 };
 
 

@@ -427,30 +427,23 @@ bool PmxFileReader::readBones(PmxModel &model) {
 
 bool PmxFileReader::calcChildBoneIndices(PmxModel &model) {
     // 全ての親ボーンの探索
-    int parentIndex = -1;
+    vector<unsigned int> parentIndices;
     for (unsigned int boneIndex = 0; boneIndex < model.getBones().size(); ++boneIndex) {
-        if (model.getBones()[boneIndex].getParentBoneIndex() == parentIndex) {
-            parentIndex = boneIndex;
-            break;
+        if (model.getBones()[boneIndex].getParentBoneIndex() == -1) {
+            parentIndices.push_back(boneIndex);
         }
-    }
-    if (parentIndex == -1) {
-        cout << "全ての親ボーンが見つかりません\n";
-        return false;
     }
 
     // 子ボーンを登録していく
-    vector<int> parentIndices;
-    parentIndices.push_back(parentIndex);
     searchChildBone(model, parentIndices);
 
     return true;
 }
 
 
-void PmxFileReader::searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices) {
+void PmxFileReader::searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices) {
     for (unsigned int parent = 0; parent < parentBoneIndices.size(); ++parent) {
-        vector<int> childBoneIndices;
+        vector<unsigned int> childBoneIndices;
         for (unsigned int child = 0; child < model.getBones().size(); ++child) {
             // もし、あるボーンにparentIndices[i]が親ボーンとして登録されていたら
             if (model.getBones()[child].getParentBoneIndex() == parentBoneIndices[parent]) {
