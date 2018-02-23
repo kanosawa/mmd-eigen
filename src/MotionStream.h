@@ -50,7 +50,7 @@ namespace mmd {
 
         /*! @brief ポインタ
         */
-        int pointer_;
+        unsigned int pointer_;
     };
 }
 

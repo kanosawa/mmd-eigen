@@ -90,7 +90,7 @@ bool PmdFileReader::readVertices(PmxModel &model) {
     unsigned int vertexNum;
     fileReader_.read(reinterpret_cast<char *>(&vertexNum), 4);
 
-    for (int n = 0; n < vertexNum; ++n) {
+    for (unsigned int n = 0; n < vertexNum; ++n) {
 
         // 三次元座標
         Eigen::Vector3f pos;
@@ -274,7 +274,7 @@ bool PmdFileReader::readBones(PmxModel &model) {
 bool PmdFileReader::calcChildBoneIndices(PmxModel &model) {
     // 全ての親ボーンの探索
     int parentIndex = -1;
-    for (int boneIndex = 0; boneIndex < model.getBones().size(); ++boneIndex) {
+    for (unsigned int boneIndex = 0; boneIndex < model.getBones().size(); ++boneIndex) {
         if (model.getBones()[boneIndex].getParentBoneIndex() == parentIndex) {
             parentIndex = boneIndex;
             break;
@@ -297,7 +297,7 @@ bool PmdFileReader::calcChildBoneIndices(PmxModel &model) {
 void PmdFileReader::searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices) {
     for (unsigned int parent = 0; parent < parentBoneIndices.size(); ++parent) {
         vector<int> childBoneIndices;
-        for (int child = 0; child < model.getBones().size(); ++child) {
+        for (unsigned int child = 0; child < model.getBones().size(); ++child) {
             // もし、あるボーンにparentIndices[i]が親ボーンとして登録されていたら
             if (model.getBones()[child].getParentBoneIndex() == parentBoneIndices[parent]) {
                 // そのボーンインデックスを子ボーンインデックスとして親ボーンに登録

@@ -48,7 +48,7 @@ void ModelUpdater::update()
     }
 
     // 付与親
-    for (int i = 0; i < model_.getBones().size(); ++i) {
+    for (unsigned int i = 0; i < model_.getBones().size(); ++i) {
         Bone bone = model_.getBones()[i];
         if (bone.getAssignRotFlag()) {
             if (bone.getAssignRatio() >= 0) {
@@ -83,7 +83,7 @@ void ModelUpdater::update()
             int loopNum = 2;
             if (ik.loopNum < loopNum) loopNum = ik.loopNum;
             for (int i = 0; i < loopNum; ++i) {
-                for (int l = 0; l < ik.linkIndices.size(); ++l) {
+                for (unsigned int l = 0; l < ik.linkIndices.size(); ++l) {
 
                     int linkIndex = ik.linkIndices[l];
 
@@ -150,7 +150,7 @@ void ModelUpdater::update()
                     }
 
                     // 付与
-                    for (int i = 0; i < model_.getBones().size(); ++i) {
+                    for (unsigned int i = 0; i < model_.getBones().size(); ++i) {
                         Bone bone = model_.getBones()[i];
                         if (bone.getAssignParentIndex() == linkIndex && bone.getAssignRotFlag()) {
                             if (bone.getAssignRatio() >= 0) {

@@ -1,6 +1,7 @@
 #ifndef MMD_RENDERER_H
 #define MMD_RENDERER_H
 
+#include <GL/glut.h>
 #include "PmxModel.h"
 #include "MotionStream.h"
 #include "ModelUpdater.h"
@@ -50,6 +51,8 @@ namespace mmd {
         /*! @brief モデル更新クラス
         */
         ModelUpdater updater_;
+
+        vector<GLuint> texname_;
 
         /*! @brief ウィンドウ幅
         */
