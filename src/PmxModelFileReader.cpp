@@ -85,12 +85,12 @@ bool PmxModelFileReader::readHeader(PmxModel &model) {
     if (byteSize != 8) return false;
 
     // エンコード方式
-    fileReader_.read(reinterpret_cast<char *>(&pmxHeaderInfo_.encodeType), 1);
-    if (pmxHeaderInfo_.encodeType != 0 && pmxHeaderInfo_.encodeType != 1) return false;
+    fileReader_.read(reinterpret_cast<char *>(&headerInfo_.encodeType), 1);
+    if (headerInfo_.encodeType != 0 && headerInfo_.encodeType != 1) return false;
 
     // 追加UV数
-    fileReader_.read(reinterpret_cast<char *>(&pmxHeaderInfo_.appendixUVNum), 1);
-    if (pmxHeaderInfo_.appendixUVNum != 0) {
+    fileReader_.read(reinterpret_cast<char *>(&headerInfo_.appendixUVNum), 1);
+    if (headerInfo_.appendixUVNum != 0) {
         std::cout << "Thie code does not support appndix uv\n";
         return false;
     }
@@ -104,22 +104,22 @@ bool PmxModelFileReader::readHeader(PmxModel &model) {
 
 bool PmxModelFileReader::readAllIndexSize() {
     // 頂点インデックスサイズ
-    if (!readIndexSize(pmxHeaderInfo_.vertexIndexSize)) return false;
+    if (!readIndexSize(headerInfo_.vertexIndexSize)) return false;
 
     // テクスチャインデックスサイズ
-    if (!readIndexSize(pmxHeaderInfo_.textureIndexSize)) return false;
+    if (!readIndexSize(headerInfo_.textureIndexSize)) return false;
 
     // マテリアルインデックスサイズ
-    if (!readIndexSize(pmxHeaderInfo_.materialIndexSize)) return false;
+    if (!readIndexSize(headerInfo_.materialIndexSize)) return false;
 
     // ボーンインデックスサイズ
-    if (!readIndexSize(pmxHeaderInfo_.boneIndexSize)) return false;
+    if (!readIndexSize(headerInfo_.boneIndexSize)) return false;
 
     // モーフインデックスサイズ
-    if (!readIndexSize(pmxHeaderInfo_.morphIndexSize)) return false;
+    if (!readIndexSize(headerInfo_.morphIndexSize)) return false;
 
     // 剛体インデックスサイズ
-    if (!readIndexSize(pmxHeaderInfo_.rigidbodyIndexSize)) return false;
+    if (!readIndexSize(headerInfo_.rigidbodyIndexSize)) return false;
 
     return true;
 }
@@ -139,7 +139,7 @@ bool PmxModelFileReader::readModelInfo() {
         // バイト数
         fileReader_.read(reinterpret_cast<char *>(&infoSize), 4);
 
-        readFromUTF(infoSize, pmxHeaderInfo_.encodeType);
+        readFromUTF(infoSize, headerInfo_.encodeType);
     }
 
     return true;
@@ -173,11 +173,11 @@ bool PmxModelFileReader::readVertices(PmxModel &model) {
         vector<int> boneIndices;
         vector<float> boneWeightList;
         if (weightType == 0) {
-            boneIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+            boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
             boneWeightList.push_back(1.0f);
         } else if (weightType == 1) {
             for (int i = 0; i < 2; ++i) {
-                boneIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+                boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
             }
             float weight;
             fileReader_.read(reinterpret_cast<char *>(&weight), 4);
@@ -185,7 +185,7 @@ bool PmxModelFileReader::readVertices(PmxModel &model) {
             boneWeightList.push_back(1.0f - weight);
         } else if (weightType == 2) {
             for (int i = 0; i < 4; ++i) {
-                boneIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+                boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
             }
             for (int i = 0; i < 4; ++i) {
                 float weight;
@@ -215,7 +215,7 @@ bool PmxModelFileReader::readSurfaces(PmxModel &model) {
     for (int n = 0; n < vertexIndexNum / 3; ++n) {
         Eigen::Vector3i vertexIndexies;
         for (int i = 0; i < 3; ++i) {
-            vertexIndexies[i] = fileReader_.readVariableSizeUnsignedData(pmxHeaderInfo_.vertexIndexSize);
+            vertexIndexies[i] = fileReader_.readVariableSizeUnsignedData(headerInfo_.vertexIndexSize);
         }
         Surface surface(vertexIndexies);
         model.pushBackSurface(surface);
@@ -233,7 +233,7 @@ bool PmxModelFileReader::readTextures(PmxModel &model) {
         // テクスチャファイル名取得
         int nameSize;
         fileReader_.read(reinterpret_cast<char *>(&nameSize), 4);
-        string textureName = readFromUTF(nameSize, pmxHeaderInfo_.encodeType);
+        string textureName = readFromUTF(nameSize, headerInfo_.encodeType);
 
         // テクスチャ画像取得
         cv::Mat textureImage = cv::imread((fileReader_.getFolderName() + textureName).c_str());
@@ -258,7 +258,7 @@ bool PmxModelFileReader::readMaterials(PmxModel &model) {
         // マテリアル名
         for (int i = 0; i < 2; ++i) {
             fileReader_.read(reinterpret_cast<char *>(&tmpSize), 4);
-            readFromUTF(tmpSize, pmxHeaderInfo_.encodeType);
+            readFromUTF(tmpSize, headerInfo_.encodeType);
         }
 
         // ディフューズ
@@ -286,7 +286,7 @@ bool PmxModelFileReader::readMaterials(PmxModel &model) {
         }
 
         // 通常テクスチャインデックス
-        int ordinaryTextureIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.textureIndexSize);
+        int ordinaryTextureIndex = fileReader_.readVariableSizeSignedData(headerInfo_.textureIndexSize);
 
         // 読み飛ばし
         for (int i = 0; i < 4; ++i) {
@@ -295,7 +295,7 @@ bool PmxModelFileReader::readMaterials(PmxModel &model) {
 
         // メモ
         fileReader_.read(reinterpret_cast<char *>(&tmpSize), 4);
-        readFromUTF(tmpSize, pmxHeaderInfo_.encodeType);
+        readFromUTF(tmpSize, headerInfo_.encodeType);
 
         // 面数
         int vertexNum;
@@ -323,17 +323,17 @@ bool PmxModelFileReader::readBones(PmxModel &model) {
         fileReader_.read(reinterpret_cast<char *>(&boneNameSize), 4);
 
         // ボーン名（日本語）
-        string boneName = readFromUTF(boneNameSize, pmxHeaderInfo_.encodeType);
+        string boneName = readFromUTF(boneNameSize, headerInfo_.encodeType);
         // ボーン名（英語）
         fileReader_.read(reinterpret_cast<char *>(&boneNameSize), 4);
-        readFromUTF(boneNameSize, pmxHeaderInfo_.encodeType);
+        readFromUTF(boneNameSize, headerInfo_.encodeType);
 
         // 三次元座標
         Eigen::Vector3f position;
         fileReader_.read(reinterpret_cast<char *>(&position), 12);
 
         // 親ボーンインデックス
-        int parentBoneIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
+        int parentBoneIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
 
         // ボーンの生成
         Bone bone(boneName, position, parentBoneIndex);
@@ -368,7 +368,7 @@ bool PmxModelFileReader::readBones(PmxModel &model) {
 
         // ボーンフラグに沿って各種データ取得
         if (destinationFlag) {
-            bone.setDestinationBoneIndex(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+            bone.setDestinationBoneIndex(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
         } else {
             Eigen::Vector3f offset;
             fileReader_.read(reinterpret_cast<char *>(&offset), 12);
@@ -376,7 +376,7 @@ bool PmxModelFileReader::readBones(PmxModel &model) {
         }
 
         if (assignRotFlag || assignShiftFlag) {
-            int assignParentIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
+            int assignParentIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
             float assignRatio;
             fileReader_.read(reinterpret_cast<char *>(&assignRatio), 4);
             bone.setAssignParentIndex(assignParentIndex);
@@ -399,13 +399,13 @@ bool PmxModelFileReader::readBones(PmxModel &model) {
 
         if (IKFlag) {
             Bone::IK ik;
-            ik.targetIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize);
+            ik.targetIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
             fileReader_.read(reinterpret_cast<char *>(&ik.loopNum), 4);
             fileReader_.read(reinterpret_cast<char *>(&ik.unitAngle), 4);
             int IKLinkNum;
             fileReader_.read(reinterpret_cast<char *>(&IKLinkNum), 4);
             for (int i = 0; i < IKLinkNum; ++i) {
-                ik.linkIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
+                ik.linkIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
 
                 bool angleLimitFlag;
                 fileReader_.read(reinterpret_cast<char *>(&angleLimitFlag), 1);

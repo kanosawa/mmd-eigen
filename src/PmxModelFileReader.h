@@ -6,7 +6,7 @@
 namespace mmd {
     /*! @brief PMXファイル読み込みクラス
     */
-    class PmxModelFileReader : ModelFileReader {
+    class PmxModelFileReader : public ModelFileReader {
     public:
         /*! @brief コンストラクタ
         * @param[in] filename

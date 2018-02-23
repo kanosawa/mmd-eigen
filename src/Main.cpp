@@ -1,6 +1,5 @@
 #include <iostream>
-#include "PmxModelFileReader.h"
-#include "PmdModelFileReader.h"
+#include "ModelFileReaderFactory.h"
 #include "VmdFileReader.h"
 #include "MotionStreamGenerator.h"
 #include "Renderer.h"
@@ -8,15 +7,15 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    // PMXファイルの入力
-//    mmd::PmxModelFileReader pmxFileReader("/home/kanosawa/src/mmd-eigen/data/totoki/totoki.pmx");
-//    mmd::PmxModel model;
-//    pmxFileReader.readFile(model);
 
-    // PMDファイルの入力
-    mmd::PmdModelFileReader pmdFileReader("/home/kanosawa/src/mmd-eigen/data/lat/lat.pmd");
+    // モデルファイル読み込みクラスの生成
+    mmd::ModelFileReaderFactory factory;
+    unique_ptr<mmd::ModelFileReader> modelFileReader =
+            factory.create("/home/kanosawa/src/mmd-eigen/data/lat/lat.pmd");
+
+    // モデルファイルの読み込み
     mmd::PmxModel model;
-    pmdFileReader.readFile(model);
+    modelFileReader->readFile(model);
 
     // VMDファイルの入力
     vector<mmd::Motion> motions;
@@ -28,8 +27,10 @@ int main(int argc, char *argv[]) {
     vector<mmd::MotionStream> motionStreams;
     motionStreamGenerator.generate(motionStreams, motions, model.getBones());
 
-    mmd::Renderer::getInstance().setParam(model, motionStreams);
-    mmd::Renderer::getInstance().start();
+    // レンダリング
+    mmd::Renderer& renderer = mmd::Renderer::getInstance();
+    renderer.setParam(model, motionStreams);
+    renderer.start();
 
     return 0;
 }

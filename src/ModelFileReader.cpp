@@ -6,7 +6,7 @@ using namespace mmd;
 
 ModelFileReader::ModelFileReader(const string &filename)
         : fileReader_(filename)
-        , pmxHeaderInfo_({2, 2, 2, 2, 2, 2, 2, 2}) {
+        , headerInfo_({0, 0, 2, 2, 2, 2, 2, 2}) {
 }
 
 
@@ -36,7 +36,7 @@ void ModelFileReader::searchChildBone(PmxModel &model, const vector<unsigned int
         vector<unsigned int> childBoneIndices;
         for (unsigned int child = 0; child < model.getBones().size(); ++child) {
             // もし、あるボーンにparentIndices[i]が親ボーンとして登録されていたら
-            if (model.getBones()[child].getParentBoneIndex() == parentBoneIndices[parent]) {
+            if (model.getBones()[child].getParentBoneIndex() == static_cast<int>(parentBoneIndices[parent])) {
                 // そのボーンインデックスを子ボーンインデックスとして親ボーンに登録
                 model.pushBackChildBoneIndex(parentBoneIndices[parent], child);
                 // 登録した子ボーンは後で親ボーンとして参照するのでvectorに突っ込んでおく

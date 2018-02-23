@@ -69,7 +69,7 @@ void ModelUpdater::update()
     }
 
     // ボーン更新
-    for (int i = 0; i < superParentIndices_.size(); ++i) {
+    for (unsigned int i = 0; i < superParentIndices_.size(); ++i) {
         model_.setBoneTemporalPosition(superParentIndices_[i],
                                        model_.getBones()[superParentIndices_[i]].getInitialPosition() +
                                        frameMotions[superParentIndices_[i]].getShift());
@@ -165,7 +165,7 @@ void ModelUpdater::update()
                     }
 
                     // ボーン更新
-                    for (int s = 0; s < superParentIndices_.size(); ++s) {
+                    for (unsigned int s = 0; s < superParentIndices_.size(); ++s) {
                         moveChildBones(superParentIndices_[s], frameMotions);
                     }
                 }

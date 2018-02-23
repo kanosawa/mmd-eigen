@@ -108,7 +108,7 @@ bool PmdModelFileReader::readVertices(PmxModel &model) {
         vector<int> boneIndices;
         vector<float> boneWeightList;
         for (int i = 0; i < 2; ++i) {
-            boneIndices.push_back(fileReader_.readVariableSizeSignedData(2));
+            boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
         }
         char weight;
         fileReader_.read(&weight, 1);
@@ -132,7 +132,7 @@ bool PmdModelFileReader::readSurfaces(PmxModel &model) {
     for (int n = 0; n < vertexIndexNum / 3; ++n) {
         Eigen::Vector3i vertexIndexies;
         for (int i = 0; i < 3; ++i) {
-            vertexIndexies[i] = fileReader_.readVariableSizeUnsignedData(2);
+            vertexIndexies[i] = fileReader_.readVariableSizeUnsignedData(headerInfo_.vertexIndexSize);
         }
         Surface surface(vertexIndexies);
         model.pushBackSurface(surface);
@@ -209,21 +209,20 @@ bool PmdModelFileReader::readBones(PmxModel &model) {
 
     for (int n = 0; n < boneNum; ++n) {
         // ボーン名（日本語）
-        //string boneName = fileReader_.readFromCP932(20, true);
         string boneName = fileReader_.readFromCP932(20, false);
 
         // 親ボーンインデックス
-        int parentBoneIndex = fileReader_.readVariableSizeSignedData(2);
+        int parentBoneIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
 
         // 接続先ボーンインデックス
-        int destinationBoneIndex = fileReader_.readVariableSizeSignedData(2);
+        int destinationBoneIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
 
         // ボーンの種類(0:回転 1:回転と移動 2:IK 3:不明 4:IK影響下 5:回転影響下 6:IK接続先 7:非表示 8:捻り 9:回転運動)
         char bone_type;
         fileReader_.read(&bone_type, 1);
 
         // IKターゲットインデックス
-        fileReader_.readVariableSizeSignedData(2);
+        fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
 
         // 三次元座標
         Eigen::Vector3f position;
@@ -248,15 +247,15 @@ bool PmdModelFileReader::readBones(PmxModel &model) {
 
     for (int n = 0; n < ikNum; ++n) {
         Bone::IK ik;
-        int boneIndex = fileReader_.readVariableSizeSignedData(2);
-        ik.targetIndex = fileReader_.readVariableSizeSignedData(2);
+        int boneIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
+        ik.targetIndex = fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize);
         int linkNum = fileReader_.readVariableSizeSignedData(1);
         ik.loopNum = fileReader_.readVariableSizeSignedData(2);
         float unitAngle;
         fileReader_.read(reinterpret_cast<char *>(&unitAngle), 4);
         ik.unitAngle = unitAngle * 4;
         for (int i = 0; i < linkNum; ++i) {
-            ik.linkIndices.push_back(fileReader_.readVariableSizeSignedData(2));
+            ik.linkIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
             if ((bones[boneIndex].getBoneName().find("左足ＩＫ\0") != std::string::npos ||
                     bones[boneIndex].getBoneName().find("右足ＩＫ\0") != std::string::npos) && i == 0) {
                 ik.angleLimitFlags.push_back(true);

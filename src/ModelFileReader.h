@@ -9,9 +9,9 @@ namespace mmd {
     */
     class ModelFileReader {
     public:
-        /*! @brief PMXモデルファイルのヘッダ情報
+        /*! @brief ヘッダ情報
         */
-        struct PmxHeaderInfo {
+        struct HeaderInfo {
 
             /*! @brief エンコードタイプ
             * 0 : utf-16, 1 : utf-8
@@ -78,7 +78,7 @@ namespace mmd {
 
         /*! @brief PMXファイルヘッダ情報
         */
-        PmxHeaderInfo pmxHeaderInfo_;
+        HeaderInfo headerInfo_;
     };
 }
 
