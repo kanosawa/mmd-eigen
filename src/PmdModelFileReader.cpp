@@ -1,53 +1,53 @@
-#include "PmdFileReader.h"
+#include "PmdModelFileReader.h"
 
 using namespace std;
 using namespace mmd;
 
 
-PmdFileReader::PmdFileReader(const string &filename)
+PmdModelFileReader::PmdModelFileReader(const string &filename)
         : fileReader_(filename) {
 }
 
 
-PmdFileReader::~PmdFileReader() {
+PmdModelFileReader::~PmdModelFileReader() {
 }
 
 
-void PmdFileReader::readFile(PmxModel& model) {
+void PmdModelFileReader::readFile(PmxModel& model) {
 
     // ヘッダの読み込み
     if (!readHeader(model)) {
-        cout << "PmdFileReader::readFile() : Header Error\n";
+        cout << "PmdModelFileReader::readFile() : Header Error\n";
         exit(0);
     }
 
     // モデル情報の読み込み
     if (!readModelInfo()) {
-        cout << "PmdFileReader::readFile() : ModelInfo Error\n";
+        cout << "PmdModelFileReader::readFile() : ModelInfo Error\n";
         exit(0);
     }
 
     // 頂点の読み込み
     if (!readVertices(model)) {
-        cout << "PmdFileReader::readFile() : Vertices Error\n";
+        cout << "PmdModelFileReader::readFile() : Vertices Error\n";
         exit(0);
     }
 
     // サーフェスの読み込み
     if (!readSurfaces(model)) {
-        cout << "PmdFileReader::readFile() : Surfaces Error\n";
+        cout << "PmdModelFileReader::readFile() : Surfaces Error\n";
         exit(0);
     }
 
     // テクスチャの読み込み
     if (!readMaterials(model)) {
-        cout << "PmdFileReader::readFile() : Materials Error\n";
+        cout << "PmdModelFileReader::readFile() : Materials Error\n";
         exit(0);
     }
 
     // ボーンの読み込み
     if (!readBones(model)) {
-        cout << "PmdFileReader::readFile() : Bones Error\n";
+        cout << "PmdModelFileReader::readFile() : Bones Error\n";
         exit(0);
     }
 
@@ -59,7 +59,7 @@ void PmdFileReader::readFile(PmxModel& model) {
 }
 
 
-bool PmdFileReader::readHeader(PmxModel &model) {
+bool PmdModelFileReader::readHeader(PmxModel &model) {
     // "Pmd"の確認(ASCII)
     const int PMD_LENGTH = 3;
     char charPmd[PMD_LENGTH];
@@ -78,14 +78,14 @@ bool PmdFileReader::readHeader(PmxModel &model) {
 }
 
 
-bool PmdFileReader::readModelInfo() {
+bool PmdModelFileReader::readModelInfo() {
     fileReader_.readFromCP932(20, false); // モデル名
     fileReader_.readFromCP932(256, false); // コメント
     return true;
 }
 
 
-bool PmdFileReader::readVertices(PmxModel &model) {
+bool PmdModelFileReader::readVertices(PmxModel &model) {
     // 頂点数
     unsigned int vertexNum;
     fileReader_.read(reinterpret_cast<char *>(&vertexNum), 4);
@@ -125,7 +125,7 @@ bool PmdFileReader::readVertices(PmxModel &model) {
 }
 
 
-bool PmdFileReader::readSurfaces(PmxModel &model) {
+bool PmdModelFileReader::readSurfaces(PmxModel &model) {
     int vertexIndexNum; // インデックス数。3インデックスで1面
     fileReader_.read(reinterpret_cast<char *>(&vertexIndexNum), 4);
 
@@ -141,7 +141,7 @@ bool PmdFileReader::readSurfaces(PmxModel &model) {
 }
 
 
-bool PmdFileReader::readMaterials(PmxModel &model) {
+bool PmdModelFileReader::readMaterials(PmxModel &model) {
     // マテリアル数
     int materialNum;
     fileReader_.read(reinterpret_cast<char *>(&materialNum), 4);
@@ -200,7 +200,7 @@ bool PmdFileReader::readMaterials(PmxModel &model) {
 }
 
 
-bool PmdFileReader::readBones(PmxModel &model) {
+bool PmdModelFileReader::readBones(PmxModel &model) {
 
     // ボーン数
     short boneNum;
@@ -276,7 +276,7 @@ bool PmdFileReader::readBones(PmxModel &model) {
 }
 
 
-bool PmdFileReader::calcChildBoneIndices(PmxModel &model) {
+bool PmdModelFileReader::calcChildBoneIndices(PmxModel &model) {
     // 全ての親ボーンの探索
     vector<unsigned int> parentIndices;
     for (unsigned int boneIndex = 0; boneIndex < model.getBones().size(); ++boneIndex) {
@@ -292,7 +292,7 @@ bool PmdFileReader::calcChildBoneIndices(PmxModel &model) {
 }
 
 
-void PmdFileReader::searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices) {
+void PmdModelFileReader::searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices) {
     for (unsigned int parent = 0; parent < parentBoneIndices.size(); ++parent) {
         vector<unsigned int> childBoneIndices;
         for (unsigned int child = 0; child < model.getBones().size(); ++child) {

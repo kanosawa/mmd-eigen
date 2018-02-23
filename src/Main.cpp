@@ -1,6 +1,6 @@
 #include <iostream>
-#include "PmxFileReader.h"
-#include "PmdFileReader.h"
+#include "PmxModelFileReader.h"
+#include "PmdModelFileReader.h"
 #include "VmdFileReader.h"
 #include "MotionStreamGenerator.h"
 #include "Renderer.h"
@@ -9,12 +9,12 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     // PMXファイルの入力
-//    mmd::PmxFileReader pmxFileReader("/home/kanosawa/src/mmd-eigen/data/totoki/totoki.pmx");
+//    mmd::PmxModelFileReader pmxFileReader("/home/kanosawa/src/mmd-eigen/data/totoki/totoki.pmx");
 //    mmd::PmxModel model;
 //    pmxFileReader.readFile(model);
 
     // PMDファイルの入力
-    mmd::PmdFileReader pmdFileReader("/home/kanosawa/src/mmd-eigen/data/lat/lat.pmd");
+    mmd::PmdModelFileReader pmdFileReader("/home/kanosawa/src/mmd-eigen/data/lat/lat.pmd");
     mmd::PmxModel model;
     pmdFileReader.readFile(model);
 

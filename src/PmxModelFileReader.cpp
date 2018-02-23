@@ -1,70 +1,70 @@
-#include "PmxFileReader.h"
+#include "PmxModelFileReader.h"
 
 using namespace std;
 using namespace mmd;
 
 
-PmxFileReader::PmxFileReader(const string &filename)
+PmxModelFileReader::PmxModelFileReader(const string &filename)
         : fileReader_(filename) {
 }
 
 
-PmxFileReader::~PmxFileReader() {
+PmxModelFileReader::~PmxModelFileReader() {
 }
 
 
-void PmxFileReader::readFile(PmxModel& model) {
+void PmxModelFileReader::readFile(PmxModel& model) {
 
     // ヘッダの読み込み
     if (!readHeader(model)) {
-        cout << "PmxFileReader::readFile() : Header Error\n";
+        cout << "PmxModelFileReader::readFile() : Header Error\n";
         exit(0);
     }
 
     // モデル情報の読み込み
     if (!readModelInfo()) {
-        cout << "PmxFileReader::readFile() : ModelInfo Error\n";
+        cout << "PmxModelFileReader::readFile() : ModelInfo Error\n";
         exit(0);
     }
 
     // 頂点の読み込み
     if (!readVertices(model)) {
-        cout << "PmxFileReader::readFile() : Vertices Error\n";
+        cout << "PmxModelFileReader::readFile() : Vertices Error\n";
         exit(0);
     }
 
     // サーフェスの読み込み
     if (!readSurfaces(model)) {
-        cout << "PmxFileReader::readFile() : Surfaces Error\n";
+        cout << "PmxModelFileReader::readFile() : Surfaces Error\n";
         exit(0);
     }
 
     // テクスチャの読み込み
     if (!readTextures(model)) {
-        cout << "PmxFileReader::readFile() : Textures Error\n";
+        cout << "PmxModelFileReader::readFile() : Textures Error\n";
         exit(0);
     }
 
     // マテリアルの読み込み
     if (!readMaterials(model)) {
-        cout << "PmxFileReader::readFile() : Materials Error\n";
+        cout << "PmxModelFileReader::readFile() : Materials Error\n";
         exit(0);
     }
 
     // ボーンの読み込み
     if (!readBones(model)) {
-        cout << "PmxFileReader::readFile() : Bones Error\n";
+        cout << "PmxModelFileReader::readFile() : Bones Error\n";
         exit(0);
     }
 
     // 子ボーンインデックスの算出
     if (!calcChildBoneIndices(model)) {
-        cout << "PmxFileReader::readFile() : ChileBoneIndices Error\n";
+        cout << "PmxModelFileReader::readFile() : ChileBoneIndices Error\n";
         exit(0);
     }
 }
 
-bool PmxFileReader::readHeader(PmxModel &model) {
+bool PmxModelFileReader::readHeader(PmxModel &model) {
     // "PMX "の確認(ASCII)
     const int PMX_LENGTH = 4;
     char charPmx[PMX_LENGTH];
@@ -102,7 +102,7 @@ bool PmxFileReader::readHeader(PmxModel &model) {
 }
 
 
-bool PmxFileReader::readAllIndexSize() {
+bool PmxModelFileReader::readAllIndexSize() {
     // 頂点インデックスサイズ
     if (!readIndexSize(pmxHeaderInfo_.vertexIndexSize)) return false;
 
@@ -125,14 +125,14 @@ bool PmxFileReader::readAllIndexSize() {
 }
 
 
-bool PmxFileReader::readIndexSize(unsigned char &indexSize) {
+bool PmxModelFileReader::readIndexSize(unsigned char &indexSize) {
     fileReader_.read(reinterpret_cast<char *>(&indexSize), 1);
     if (indexSize != 1 && indexSize != 2 && indexSize != 4) return false;
     return true;
 }
 
 
-bool PmxFileReader::readModelInfo() {
+bool PmxModelFileReader::readModelInfo() {
     const int MODEL_INFO_NUM = 4; // モデル名、モデル名英、コメント、コメント英
     int infoSize;
     for (int i = 0; i < MODEL_INFO_NUM; ++i) {
@@ -146,7 +146,7 @@ bool PmxFileReader::readModelInfo() {
 }
 
 
-bool PmxFileReader::readVertices(PmxModel &model) {
+bool PmxModelFileReader::readVertices(PmxModel &model) {
     // 頂点数
     int vertexNum;
     fileReader_.read(reinterpret_cast<char *>(&vertexNum), 4);
@@ -208,7 +208,7 @@ bool PmxFileReader::readVertices(PmxModel &model) {
 }
 
 
-bool PmxFileReader::readSurfaces(PmxModel &model) {
+bool PmxModelFileReader::readSurfaces(PmxModel &model) {
     int vertexIndexNum; // インデックス数。3インデックスで1面
     fileReader_.read(reinterpret_cast<char *>(&vertexIndexNum), 4);
 
@@ -224,7 +224,7 @@ bool PmxFileReader::readSurfaces(PmxModel &model) {
 }
 
 
-bool PmxFileReader::readTextures(PmxModel &model) {
+bool PmxModelFileReader::readTextures(PmxModel &model) {
     // テクスチャ数
     int textureNum;
     fileReader_.read(reinterpret_cast<char *>(&textureNum), 4);
@@ -244,7 +244,7 @@ bool PmxFileReader::readTextures(PmxModel &model) {
     return true;
 }
 
-bool PmxFileReader::readMaterials(PmxModel &model) {
+bool PmxModelFileReader::readMaterials(PmxModel &model) {
     // マテリアル数
     int materialNum;
     fileReader_.read(reinterpret_cast<char *>(&materialNum), 4);
@@ -311,7 +311,7 @@ bool PmxFileReader::readMaterials(PmxModel &model) {
     return true;
 }
 
-bool PmxFileReader::readBones(PmxModel &model) {
+bool PmxModelFileReader::readBones(PmxModel &model) {
     // ボーン数
     int boneNum;
     fileReader_.read(reinterpret_cast<char *>(&boneNum), 4);
@@ -425,7 +425,7 @@ bool PmxFileReader::readBones(PmxModel &model) {
 }
 
 
-bool PmxFileReader::calcChildBoneIndices(PmxModel &model) {
+bool PmxModelFileReader::calcChildBoneIndices(PmxModel &model) {
     // 全ての親ボーンの探索
     vector<unsigned int> parentIndices;
     for (unsigned int boneIndex = 0; boneIndex < model.getBones().size(); ++boneIndex) {
@@ -441,7 +441,7 @@ bool PmxFileReader::calcChildBoneIndices(PmxModel &model) {
 }
 
 
-void PmxFileReader::searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices) {
+void PmxModelFileReader::searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices) {
     for (unsigned int parent = 0; parent < parentBoneIndices.size(); ++parent) {
         vector<unsigned int> childBoneIndices;
         for (unsigned int child = 0; child < model.getBones().size(); ++child) {
@@ -459,7 +459,7 @@ void PmxFileReader::searchChildBone(PmxModel &model, const vector<unsigned int> 
 }
 
 
-const string PmxFileReader::readFromUTF(const int size, const char encodeType)
+const string PmxModelFileReader::readFromUTF(const int size, const char encodeType)
 {
     if (encodeType == 0) {
         return fileReader_.readFromUTF16(size);

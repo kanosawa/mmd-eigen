@@ -1,5 +1,5 @@
-#ifndef MMD_PMD_FILE_READER_H
-#define MMD_PMD_FILE_READER_H
+#ifndef MMD_PMD_MODEL_FILE_READER_H
+#define MMD_PMD_MODEL_FILE_READER_H
 
 #include "FileReader.h"
 #include "PmxModel.h"
@@ -7,15 +7,15 @@
 namespace mmd {
     /*! @brief PMDファイル読み込みクラス
     */
-    class PmdFileReader {
+    class PmdModelFileReader {
 
     public:
         /*! @brief コンストラクタ
         * @param[in] filename
         */
-        PmdFileReader(const string &filename);
+        PmdModelFileReader(const string &filename);
 
-        ~PmdFileReader();
+        ~PmdModelFileReader();
 
         /*! @brief PMDモデルファイルの読み込み
         * @return モデル
@@ -25,7 +25,7 @@ namespace mmd {
     private:
         /*! @brief デフォルトコンストラクタの禁止
         */
-        PmdFileReader();
+        PmdModelFileReader();
 
         /*! @brief ヘッダの読み込み
         * @param[out] model モデル
