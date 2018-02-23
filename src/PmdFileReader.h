@@ -8,43 +8,6 @@ namespace mmd {
     /*! @brief PMDファイル読み込みクラス
     */
     class PmdFileReader {
-        /*! @brief PMDモデルファイルのヘッダ情報
-        */
-        struct PmdHeaderInfo {
-
-            /*! @brief エンコードタイプ
-            * 0 : utf-16, 1 : utf-8
-            */
-            unsigned char encodeType;
-
-            /*! @brief 追加UV数
-            */
-            unsigned char appendixUVNum;
-
-            /*! @brief 頂点インデックスサイズ
-            */
-            unsigned char vertexIndexSize;
-
-            /*! @brief テクスチャインデックスサイズ
-            */
-            unsigned char textureIndexSize;
-
-            /*! @brief 材質インデックスサイズ
-            */
-            unsigned char materialIndexSize;
-
-            /*! @brief ボーンインデックスサイズ
-            */
-            unsigned char boneIndexSize;
-
-            /*! @brief モーフインデックスサイズ
-            */
-            unsigned char morphIndexSize;
-
-            /*! @brief 剛体インデックスサイズ
-            */
-            unsigned char rigidbodyIndexSize;
-        };
 
     public:
         /*! @brief コンストラクタ
@@ -75,13 +38,45 @@ namespace mmd {
         */
         bool readModelInfo();
 
+        /*! @brief 頂点の読み込み
+        * @param[out] model モデル
+        * @return 成否
+        */
+        bool readVertices(PmxModel &model);
+
+        /*! @brief 面の読み込み
+        * @param[out] model モデル
+        * @return 成否
+        */
+        bool readSurfaces(PmxModel &model);
+
+        /*! @brief マテリアルの読み込み
+        * @param[out] model モデル
+        * @return 成否
+        */
+        bool readMaterials(PmxModel &model);
+
+        /*! @brief ボーンの読み込み
+        * @param[out] model モデル
+        * @return 成否
+        */
+        bool readBones(PmxModel &model);
+
+        /*! @brief 子ボーンインデックスの算出
+        * @param[in, out] model モデル
+        * @return 成否
+        */
+        bool calcChildBoneIndices(PmxModel &model);
+
+        /*! @brief 子ボーンの探索（再帰関数）
+        * @param[out] model モデル
+        * @param[in] parentBoneIndices 親ボーンインデックス
+        */
+        void searchChildBone(PmxModel &model, const vector<int> &parentBoneIndices);
+
         /*! @brief ファイル入力クラス
         */
         FileReader fileReader_;
-
-        /*! @brief PMDファイルヘッダ情報
-        */
-        PmdHeaderInfo pmdHeaderInfo_;
     };
 }
 

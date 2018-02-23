@@ -4,7 +4,8 @@
 using namespace std;
 using namespace mmd;
 
-ModelUpdater::ModelUpdater() {
+ModelUpdater::ModelUpdater()
+        : currentFrameNo_(0) {
 }
 
 
@@ -19,7 +20,6 @@ const PmxModel& ModelUpdater::getModel() const {
 
 void ModelUpdater::update()
 {
-    ++currentFrameNo_;
     cout << currentFrameNo_ << endl;
 
     // 現フレームのモーションデータを補間処理によって生成
@@ -47,7 +47,6 @@ void ModelUpdater::update()
         }
     }
 
-
     // 付与親
     for (int i = 0; i < model_.getBones().size(); ++i) {
         Bone bone = model_.getBones()[i];
@@ -68,7 +67,6 @@ void ModelUpdater::update()
                                      bone.getAssignRatio());
         }
     }
-
 
     // ボーン更新
     model_.setBoneTemporalPosition(superParentIndex_,
@@ -187,6 +185,7 @@ void ModelUpdater::update()
         }
         model_.setVertexTemporalPosition(i, pos);
     }
+    ++currentFrameNo_;
 }
 
 

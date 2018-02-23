@@ -20,13 +20,13 @@ namespace mmd {
          * @param[in] surfaceNum マテリアルに対応するサーフェス数
         */
         Material(const Eigen::Vector4f &diffuse, const Eigen::Vector3f &specular, const float specularCoef,
-                 const Eigen::Vector3f &ambient, const unsigned char ordinaryTextureIndex, const int surfaceNum);
+                 const Eigen::Vector3f &ambient, const int ordinaryTextureIndex, const int surfaceNum);
 
         const Eigen::Vector4f &getDiffuse() const;
         const Eigen::Vector3f &getSpecular() const;
         const float getSpecularCoef() const;
         const Eigen::Vector3f &getAmbient() const;
-        const unsigned char getOrdinaryTextureIndex() const;
+        const int getOrdinaryTextureIndex() const;
         const int getSurfaceNum() const;
 
     private:
@@ -48,7 +48,7 @@ namespace mmd {
 
         /*! @brief 通常テクスチャインデックス
         */
-        unsigned char ordinaryTextureIndex_;
+        int ordinaryTextureIndex_;
 
         /*! @brief マテリアルに対応するサーフェス数
         */

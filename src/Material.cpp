@@ -11,7 +11,7 @@ Material::~Material() {
 
 
 Material::Material(const Eigen::Vector4f &diffuse, const Eigen::Vector3f &specular, const float specularCoef,
-                   const Eigen::Vector3f &ambient, const unsigned char ordinaryTextureIndex, const int surfaceNum)
+                   const Eigen::Vector3f &ambient, const int ordinaryTextureIndex, const int surfaceNum)
         : diffuse_(diffuse), specular_(specular), specularCoef_(specularCoef), ambient_(ambient),
           ordinaryTextureIndex_(ordinaryTextureIndex), surfaceNum_(surfaceNum) {
 }
@@ -37,7 +37,7 @@ const Eigen::Vector3f &Material::getAmbient() const {
 }
 
 
-const unsigned char Material::getOrdinaryTextureIndex() const {
+const int Material::getOrdinaryTextureIndex() const {
     return ordinaryTextureIndex_;
 }
 

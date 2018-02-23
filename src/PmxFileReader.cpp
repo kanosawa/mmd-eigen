@@ -173,11 +173,11 @@ bool PmxFileReader::readVertices(PmxModel &model) {
         vector<int> boneIndices;
         vector<float> boneWeightList;
         if (weightType == 0) {
-            boneIndices.push_back(fileReader_.readVariableSizeUnsignedData(pmxHeaderInfo_.boneIndexSize));
+            boneIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
             boneWeightList.push_back(1.0f);
         } else if (weightType == 1) {
             for (int i = 0; i < 2; ++i) {
-                boneIndices.push_back(fileReader_.readVariableSizeUnsignedData(pmxHeaderInfo_.boneIndexSize));
+                boneIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
             }
             float weight;
             fileReader_.read(reinterpret_cast<char *>(&weight), 4);
@@ -185,7 +185,7 @@ bool PmxFileReader::readVertices(PmxModel &model) {
             boneWeightList.push_back(1.0f - weight);
         } else if (weightType == 2) {
             for (int i = 0; i < 4; ++i) {
-                boneIndices.push_back(fileReader_.readVariableSizeUnsignedData(pmxHeaderInfo_.boneIndexSize));
+                boneIndices.push_back(fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.boneIndexSize));
             }
             for (int i = 0; i < 4; ++i) {
                 float weight;
@@ -286,7 +286,7 @@ bool PmxFileReader::readMaterials(PmxModel &model) {
         }
 
         // 通常テクスチャインデックス
-        unsigned char ordinaryTextureIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.textureIndexSize);
+        int ordinaryTextureIndex = fileReader_.readVariableSizeSignedData(pmxHeaderInfo_.textureIndexSize);
 
         // 読み飛ばし
         for (int i = 0; i < 4; ++i) {
@@ -305,7 +305,7 @@ bool PmxFileReader::readMaterials(PmxModel &model) {
             return false;
         }
 
-        model.pushBackMaterial(Material(diffuse, specular, specularCoef, ambient,ordinaryTextureIndex, vertexNum / 3));
+        model.pushBackMaterial(Material(diffuse, specular, specularCoef, ambient, ordinaryTextureIndex, vertexNum / 3));
     }
 
     return true;
@@ -339,8 +339,8 @@ bool PmxFileReader::readBones(PmxModel &model) {
         Bone bone(boneName, position, parentBoneIndex);
 
         // 読み飛ばし
-        double tmp;
-        fileReader_.read(reinterpret_cast<char *>(&tmp), 4);
+        float tmp4;
+        fileReader_.read(reinterpret_cast<char *>(&tmp4), 4);
 
         // ボーンフラグ
         short boneFlag;
@@ -383,19 +383,18 @@ bool PmxFileReader::readBones(PmxModel &model) {
             bone.setAssignRatio(assignRatio);
         }
 
+        Eigen::Vector3f tmp12;
         if (axisFixFlag) {
-            Eigen::Vector3f tmp;
-            fileReader_.read(reinterpret_cast<char *>(&tmp), 12);
+            fileReader_.read(reinterpret_cast<char *>(&tmp12), 12);
         }
 
         if (localAxisFlag) {
-            Eigen::Vector3f tmp;
-            fileReader_.read(reinterpret_cast<char *>(&tmp), 12);
-            fileReader_.read(reinterpret_cast<char *>(&tmp), 12);
+            fileReader_.read(reinterpret_cast<char *>(&tmp12), 12);
+            fileReader_.read(reinterpret_cast<char *>(&tmp12), 12);
         }
 
         if (extParentChageFlag) {
-            fileReader_.read(reinterpret_cast<char *>(&tmp), 4);
+            fileReader_.read(reinterpret_cast<char *>(&tmp4), 4);
         }
 
         if (IKFlag) {
@@ -412,9 +411,8 @@ bool PmxFileReader::readBones(PmxModel &model) {
                 fileReader_.read(reinterpret_cast<char *>(&angleLimitFlag), 1);
                 ik.angleLimitFlags.push_back(angleLimitFlag);
                 if (angleLimitFlag) {
-                    Eigen::Vector3f tmp;
-                    fileReader_.read(reinterpret_cast<char *>(&tmp), 12);
-                    fileReader_.read(reinterpret_cast<char *>(&tmp), 12);
+                    fileReader_.read(reinterpret_cast<char *>(&tmp12), 12);
+                    fileReader_.read(reinterpret_cast<char *>(&tmp12), 12);
                 }
             }
             bone.setIK(ik);
