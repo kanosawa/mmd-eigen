@@ -1,51 +1,12 @@
 #ifndef MMD_PMX_MODEL_FILE_READER_H
 #define MMD_PMX_MODEL_FILE_READER_H
 
-#include "FileReader.h"
-#include "PmxModel.h"
+#include "ModelFileReader.h"
 
 namespace mmd {
     /*! @brief PMXファイル読み込みクラス
     */
-    class PmxModelFileReader {
-        /*! @brief PMXモデルファイルのヘッダ情報
-        */
-        struct PmxHeaderInfo {
-
-            /*! @brief エンコードタイプ
-            * 0 : utf-16, 1 : utf-8
-            */
-            unsigned char encodeType;
-
-            /*! @brief 追加UV数
-            */
-            unsigned char appendixUVNum;
-
-            /*! @brief 頂点インデックスサイズ
-            */
-            unsigned char vertexIndexSize;
-
-            /*! @brief テクスチャインデックスサイズ
-            */
-            unsigned char textureIndexSize;
-
-            /*! @brief 材質インデックスサイズ
-            */
-            unsigned char materialIndexSize;
-
-            /*! @brief ボーンインデックスサイズ
-            */
-            unsigned char boneIndexSize;
-
-            /*! @brief モーフインデックスサイズ
-            */
-            unsigned char morphIndexSize;
-
-            /*! @brief 剛体インデックスサイズ
-            */
-            unsigned char rigidbodyIndexSize;
-        };
-
+    class PmxModelFileReader : ModelFileReader {
     public:
         /*! @brief コンストラクタ
         * @param[in] filename
@@ -116,32 +77,12 @@ namespace mmd {
         */
         bool readBones(PmxModel &model);
 
-        /*! @brief 子ボーンインデックスの算出
-        * @param[in, out] model モデル
-        * @return 成否
-        */
-        bool calcChildBoneIndices(PmxModel &model);
-
-        /*! @brief 子ボーンの探索（再帰関数）
-        * @param[out] model モデル
-        * @param[in] parentBoneIndices 親ボーンインデックス
-        */
-        void searchChildBone(PmxModel &model, const vector<unsigned int> &parentBoneIndices);
-
         /*! @brief ファイル入力
         * @param[in] size 入力バイト数
         * @param[in] encodeType エンコードタイプ
         * @return ファイルから入力した文字列
         */
         const string readFromUTF(const int size, const char encodeType);
-
-        /*! @brief ファイル入力クラス
-        */
-        FileReader fileReader_;
-
-        /*! @brief PMXファイルヘッダ情報
-        */
-        PmxHeaderInfo pmxHeaderInfo_;
     };
 }
 
