@@ -8,10 +8,15 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
+    if (argc < 3) {
+        cout << "usage : exe_filename model_filename(fullpath) vmd_filename(fullpath)\n";
+        exit(0);
+    }
+
     // モデルファイル読み込みクラスの生成
     mmd::ModelFileReaderFactory factory;
     unique_ptr<mmd::ModelFileReader> modelFileReader =
-            factory.create("/home/kanosawa/src/mmd-eigen/data/lat/lat.pmd");
+            factory.create(argv[1]);
 
     // モデルファイルの読み込み
     mmd::PmxModel model;
@@ -19,7 +24,7 @@ int main(int argc, char *argv[]) {
 
     // VMDファイルの入力
     vector<mmd::Motion> motions;
-    mmd::VmdFileReader vmdFileReader("/home/kanosawa/src/mmd-eigen/data/fish.vmd", model.getBones());
+    mmd::VmdFileReader vmdFileReader(argv[2], model.getBones());
     vmdFileReader.readFile(motions);
 
     // VMDのモーションデータをボーンごとのモーションストリームに変換
