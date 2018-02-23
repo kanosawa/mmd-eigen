@@ -231,8 +231,13 @@ bool PmdFileReader::readBones(PmxModel &model) {
 
         // ボーンの生成
         Bone bone(boneName, position, parentBoneIndex);
-        bone.setDestinationFlag(true);
-        bone.setDestinationBoneIndex(destinationBoneIndex);
+        if (destinationBoneIndex != 0) {
+            bone.setDestinationFlag(true);
+            bone.setDestinationBoneIndex(destinationBoneIndex);
+        } else {
+            bone.setDestinationFlag(false);
+            bone.setOffset(Eigen::Vector3f(0, 0, 0));
+        }
         bone.setIKFlag(false);
         bones[n] = bone;
     }
