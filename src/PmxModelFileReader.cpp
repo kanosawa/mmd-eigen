@@ -175,7 +175,7 @@ bool PmxModelFileReader::readVertices(PmxModel &model) {
         if (weightType == 0) {
             boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
             boneWeightList.push_back(1.0f);
-        } else if (weightType == 1) {
+        } else if (weightType == 1 || weightType == 3) {
             for (int i = 0; i < 2; ++i) {
                 boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
             }
@@ -183,6 +183,12 @@ bool PmxModelFileReader::readVertices(PmxModel &model) {
             fileReader_.read(reinterpret_cast<char *>(&weight), 4);
             boneWeightList.push_back(weight);
             boneWeightList.push_back(1.0f - weight);
+            if (weightType == 3) {
+                for (int i = 0; i < 3; ++i) {
+                    Eigen::Vector3f tmp;
+                    fileReader_.read(reinterpret_cast<char *>(&tmp), 12);
+                }
+            }
         } else if (weightType == 2) {
             for (int i = 0; i < 4; ++i) {
                 boneIndices.push_back(fileReader_.readVariableSizeSignedData(headerInfo_.boneIndexSize));
@@ -192,9 +198,8 @@ bool PmxModelFileReader::readVertices(PmxModel &model) {
                 fileReader_.read(reinterpret_cast<char *>(&weight), 4);
                 boneWeightList.push_back(weight);
             }
-        }
-        else {
-            cout << "This code does not support SDEF\n";
+        } else {
+            cout << "weightType is something wrong\n";
         }
 
         model.pushBackVertex(Vertex(pos, uv, boneIndices, boneWeightList));
@@ -234,6 +239,15 @@ bool PmxModelFileReader::readTextures(PmxModel &model) {
         int nameSize;
         fileReader_.read(reinterpret_cast<char *>(&nameSize), 4);
         string textureName = readFromUTF(nameSize, headerInfo_.encodeType);
+
+        // "\\"対策
+        string target = "\\";
+        string replacement = "/";
+        std::string::size_type pos = 0;
+        while ((pos = textureName.find(target, pos)) != std::string::npos) {
+            textureName.replace(pos, target.length(), replacement);
+            pos += replacement.length();
+        }
 
         // テクスチャ画像取得
         cv::Mat textureImage = cv::imread((fileReader_.getFolderName() + textureName).c_str());
